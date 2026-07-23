@@ -2,12 +2,16 @@ return {
   -- Syntax Highlighting: Treesitter with file-size safeguards
   {
     "nvim-treesitter/nvim-treesitter",
-    version = false, -- Use latest master
+    branch = "master",
     build = ":TSUpdate",
     event = { "BufReadPost", "BufNewFile" },
     cmd = { "TSUpdateSync", "TSUpdate" },
     config = function()
-      require("nvim-treesitter.configs").setup({
+      local ok, configs = pcall(require, "nvim-treesitter.configs")
+      if not ok then
+        return
+      end
+      configs.setup({
         -- Standard development parsers
         ensure_installed = {
           "lua",

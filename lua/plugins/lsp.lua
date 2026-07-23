@@ -1,4 +1,15 @@
 return {
+  -- Lazydev: Configures Lua LSP for Neovim config and plugin development
+  {
+    "folke/lazydev.nvim",
+    ft = "lua",
+    opts = {
+      library = {
+        { path = "${3rd}/luv/library", words = { "vim%.uv" } },
+      },
+    },
+  },
+
   -- LSP configuration and server setups
   {
     "neovim/nvim-lspconfig",
@@ -79,14 +90,7 @@ return {
       local capabilities = require("cmp_nvim_lsp").default_capabilities()
       local mason_lspconfig = require("mason-lspconfig")
 
-      mason_lspconfig.setup({
-        -- Standard defaults, can install others via :Mason
-        ensure_installed = {
-          "lua_ls",
-        },
-      })
-
-      mason_lspconfig.setup_handlers({
+      local handlers = {
         -- Default handler
         function(server_name)
           require("lspconfig")[server_name].setup({
@@ -104,10 +108,6 @@ return {
                   globals = { "vim" },
                 },
                 workspace = {
-                  library = {
-                    [vim.fn.expand("$VIMRUNTIME/lua")] = true,
-                    [vim.fn.stdpath("config") .. "/lua"] = true,
-                  },
                   checkThirdParty = false,
                 },
                 telemetry = { enabled = false },
@@ -115,7 +115,18 @@ return {
             },
           })
         end,
+      }
+
+      mason_lspconfig.setup({
+        ensure_installed = {
+          "lua_ls",
+        },
+        handlers = handlers,
       })
+
+      if mason_lspconfig.setup_handlers then
+        mason_lspconfig.setup_handlers(handlers)
+      end
     end,
   },
 
