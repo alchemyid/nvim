@@ -1,4 +1,13 @@
 return {
+  -- Icons: nvim-web-devicons for file and UI icons
+  {
+    "nvim-tree/nvim-web-devicons",
+    lazy = true,
+    opts = {
+      default = true,
+    },
+  },
+
   -- Colorscheme: Catppuccin with byte compilation enabled for sub-millisecond startup times
   {
     "catppuccin/nvim",
@@ -16,7 +25,7 @@ return {
         transparent_background = false,
         show_end_of_line = false,
         dim_inactive = {
-          enabled = false, -- can cause lag on older CPUs if active
+          enabled = false,
         },
         integrations = {
           cmp = true,
@@ -25,11 +34,15 @@ return {
           mason = true,
           fzf = true,
           lualine = true,
+          neotree = true,
+          native_lsp = {
+            enabled = true,
+          },
         },
       })
 
-      -- Set the colorscheme
-      vim.cmd.colorscheme("catppuccin")
+      -- Set the colorscheme explicitly to catppuccin-mocha
+      vim.cmd.colorscheme("catppuccin-mocha")
     end,
   },
 
@@ -40,7 +53,7 @@ return {
     dependencies = { "nvim-tree/nvim-web-devicons" },
     opts = {
       options = {
-        theme = "auto",
+        theme = "catppuccin",
         component_separators = { left = "|", right = "|" },
         section_separators = { left = "", right = "" },
         disabled_filetypes = {
