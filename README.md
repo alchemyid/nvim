@@ -1,115 +1,232 @@
-# Lightweight & High-Performance Neovim Config for ThinkPad X220
+# Neovim Config Template — onedark.nvim
 
-A modern, full-featured, yet lightweight Neovim configuration built for senior full-stack development on older hardware (Intel Core i7 2nd Gen, 8GB RAM, SSD) running **Arch Linux**.
+Template konfigurasi Neovim (Lua, plugin manager [lazy.nvim](https://github.com/folke/lazy.nvim))
+dengan colorscheme [onedark.nvim](https://github.com/navarasu/onedark.nvim), lengkap dengan
+semua plugin yang secara eksplisit disebutkan "Supported" di README onedark.nvim, sudah
+dikonfigurasi agar warnanya konsisten.
 
----
+## Requirement
 
-##  Key Features & Performance Details
+- **Neovim >= 0.9** (wajib untuk onedark.nvim versi terbaru — treesitter captures modern,
+  LSP semantic tokens, dst). Kalau masih pakai Neovim 0.5–0.8, lihat catatan di
+  `lua/plugins/colorscheme.lua` untuk pin ke tag `v0.1.0`.
+- `git` terpasang di PATH (dipakai lazy.nvim untuk clone plugin).
+- Opsional: [Nerd Font](https://www.nerdfonts.com/) di terminal, supaya icon
+  (nvim-web-devicons, dashboard, lualine, dll) tampil dengan benar.
 
-- **Sub-25ms Startup Time:** Loads only **2 out of 18 plugins** (`lazy.nvim` and a compiled version of the `Catppuccin` theme) on initial launch. All other integrations are loaded on-demand.
-- **`fzf-lua` over Telescope:** Interfaces with the native, compiled `fzf` binary. File searches and workspace greps are virtually instantaneous and consume very little RAM.
-- **Hybrid File Explorer Setup:** Provides both **`oil.nvim`** (buffer-style explorer mapped to `-` for quick edits) and **`neo-tree.nvim`** (classic sidebar explorer on the left mapped to `<Space> + e`). Both are lazy-loaded to keep startup fast.
-- **CPU Safeguards:** 
-  - Real-time syntax highlighting (Treesitter) automatically disables itself on files larger than **100KB** or **5,000 lines**.
-  - Autocomplete (`nvim-cmp`) debounces keystrokes by **100ms** and limits list results to **10 items** to prevent key stutter.
-  - Lints and diagnostic calculations are paused during active typing (`update_in_insert = false`).
-
----
-
-##  Quick Installation
-
-### 1. Install System Dependencies
-Since this configuration delegates search and compilations to optimized system tools (written in C, Go, and Rust), install them via Arch's package manager first:
+## Instalasi
 
 ```bash
-sudo pacman -S git ripgrep fd fzf make gcc npm python-pip
+# backup config lama kalau ada
+mv ~/.config/nvim ~/.config/nvim.bak
+
+# clone/copy folder ini ke ~/.config/nvim
+git clone [repo-anda] ~/.config/nvim
+# atau kalau dari zip, extract langsung ke ~/.config/nvim
+
+nvim
 ```
 
-### 2. Symlink the Configuration
-Link this repository to your Neovim config directory:
+Saat pertama kali dibuka, `lazy.nvim` akan otomatis bootstrap dirinya sendiri lalu
+install semua plugin di bawah ini. Tunggu sampai selesai, lalu restart nvim.
 
-```bash
-# Backup your existing config if you have one
-mv ~/.config/nvim ~/.config/nvim.backup 2>/dev/null
+## Struktur folder
 
-# Clone or symlink this directory
-ln -s /home/x/Documents/programming/neovim ~/.config/nvim
+```
+~/.config/nvim/
+├── init.lua                      -- entry point
+└── lua/
+    ├── config/
+    │   ├── options.lua           -- vim.opt defaults
+    │   ├── keymaps.lua           -- keymap global (non plugin-specific)
+    │   └── lazy.lua              -- bootstrap + loader lazy.nvim
+    └── plugins/
+        ├── colorscheme.lua       -- onedark.nvim (theme utama)
+        ├── treesitter.lua        -- TreeSitter
+        ├── lsp.lua                -- native LSP + mason (untuk LSPDiagnostics)
+        ├── nvim-tree.lua          -- NvimTree
+        ├── neo-tree.lua           -- Neo-tree (alternatif nvim-tree)
+        ├── telescope.lua          -- Telescope
+        ├── which-key.lua          -- WhichKey
+        ├── dashboard.lua          -- Dashboard
+        ├── lualine.lua            -- Lualine (theme = 'onedark')
+        ├── gitsigns.lua           -- GitSigns (pengganti modern GitGutter)
+        ├── fugitive.lua           -- VimFugitive
+        ├── diffview.lua           -- DiffView
+        ├── hop.lua                -- Hop
+        ├── mini.lua               -- Mini.nvim (subset modul)
+        ├── neotest.lua            -- Neotest
+        ├── barbecue.lua           -- Barbecue
+        ├── indent-blankline.lua   -- IndentBlankline
+        ├── indentmini.lua         -- indentmini (alternatif, nonaktif default)
+        └── illuminate.lua         -- vim-illuminate
 ```
 
-Upon launching Neovim (`nvim`), `lazy.nvim` will automatically clone and install the remaining plugins.
+Setiap file di `lua/plugins/` adalah satu spec `lazy.nvim` yang otomatis ter-load lewat
+`{ import = "plugins" }` di `lua/config/lazy.lua` — tinggal tambah file baru untuk plugin
+baru, tanpa perlu edit file lain.
+
+## Plugin yang di-cover onedark.nvim, dan status di template ini
+
+| Plugin (README onedark.nvim) | Status | Catatan |
+|---|---|---|
+| TreeSitter | ✅ Aktif | `treesitter.lua` |
+| LSP Diagnostics | ✅ Aktif | `lsp.lua` (native `vim.diagnostic` + mason) |
+| NvimTree | ✅ Aktif | `nvim-tree.lua`, `<leader>e` |
+| Telescope | ✅ Aktif | `telescope.lua`, `<leader>ff/fg/fb/fh` |
+| WhichKey | ✅ Aktif | `which-key.lua` |
+| Dashboard | ✅ Aktif | `dashboard.lua` |
+| Lualine | ✅ Aktif | `lualine.lua`, theme diset `onedark` sesuai dokumentasi resmi |
+| GitGutter | ⚪ Diganti | Digantikan `gitsigns.lua` (maintained, sama-sama didukung skema) |
+| GitSigns | ✅ Aktif | `gitsigns.lua` |
+| VimFugitive | ✅ Aktif | `fugitive.lua`, `<leader>gs` |
+| DiffView | ✅ Aktif | `diffview.lua`, `<leader>gd` |
+| Hop | ✅ Aktif | `hop.lua`, `<leader>hw/hl` |
+| Mini | ✅ Aktif | `mini.lua` (pairs, comment, surround, indentscope) |
+| Neo-tree | ⚪ Opsional | `neo-tree.lua`, `<leader>E` — alternatif NvimTree, pilih salah satu |
+| Neotest | ✅ Aktif | `neotest.lua`, `<leader>tn/tf/to/ts` (tambahkan adapter bahasa sendiri) |
+| Barbecue | ✅ Aktif | `barbecue.lua` |
+| IndentBlankline | ✅ Aktif | `indent-blankline.lua` |
+| vim-illuminate | ✅ Aktif | `illuminate.lua` |
+| indentmini | ⚪ Opsional | `indentmini.lua`, nonaktif default — alternatif indent-blankline |
+
+Yang ditandai "Opsional" sengaja dibuat sebagai alternatif berdampingan (bukan
+dijalankan bersamaan), karena fungsinya tumpang tindih dengan plugin lain yang sudah
+aktif (dua file explorer / dua indent-guide sekaligus biasanya cuma bikin bentrok
+keymap & visual). Tinggal aktifkan salah satu.
+
+## Mengganti style onedark
+
+Edit `style` di `lua/plugins/colorscheme.lua`:
+
+```lua
+style = "darker", -- dark | darker | cool | deep | warm | warmer | light
+```
+
+Atau toggle langsung di dalam nvim dengan `<leader>ts`.
+
+## Menambah LSP server / test adapter
+
+- LSP: tambahkan nama server di `ensure_installed` (`lsp.lua`) lalu tambahkan
+  `lspconfig.<server>.setup({...})`.
+- Neotest: install adapter yang sesuai (mis. `nvim-neotest/neotest-python`) sebagai
+  dependency di `neotest.lua`, lalu daftarkan di tabel `adapters`.
+
+## Daftar Shortcut (Keymaps)
+
+Tombol **Leader** pada konfigurasi ini diset ke tombol **`Space`** (Spasi).
+
+### 1. Custom Keymaps (Konfigurasi Template)
+
+#### General & Navigasi Window
+| Shortcut | Perintah | Deskripsi |
+|---|---|---|
+| `Leader + w` | `:w` | Simpan file (Save) |
+| `Leader + q` | `:q` | Keluar window (Quit) |
+| `Esc` | `:nohlsearch` | Bersihkan highlight hasil pencarian |
+| `Ctrl + h` | `Ctrl + w` lalu `h` | Pindah fokus ke window sebelah kiri |
+| `Ctrl + l` | `Ctrl + w` lalu `l` | Pindah fokus ke window sebelah kanan |
+| `Ctrl + j` | `Ctrl + w` lalu `j` | Pindah fokus ke window bawah |
+| `Ctrl + k` | `Ctrl + w` lalu `k` | Pindah fokus ke window atas |
+| `Leader + ts` | Onedark toggle | Ganti style Onedark (`dark`, `darker`, `cool`, `deep`, `warm`, `warmer`, `light`) |
+
+#### File Explorer & Fuzzy Finder (Telescope)
+| Shortcut | Plugin | Deskripsi |
+|---|---|---|
+| `Leader + e` | NvimTree | Toggle sidebar file explorer |
+| `Leader + E` | Neo-tree | Toggle Neo-tree (alternatif opsional) |
+| `Leader + ff` | Telescope | Cari file berdasarkan nama (`find_files`) |
+| `Leader + fg` | Telescope | Cari kata/teks di seluruh project (`live_grep`) |
+| `Leader + fb` | Telescope | Cari daftar buffer yang sedang terbuka |
+| `Leader + fh` | Telescope | Cari dokumentasi help tags |
+
+#### LSP (Language Server Protocol)
+| Shortcut | Perintah | Deskripsi |
+|---|---|---|
+| `gd` | `vim.lsp.buf.definition` | Lompat ke lokasi definisi fungsi/variabel |
+| `K` | `vim.lsp.buf.hover` | Tampilkan pop-up dokumentasi/tipe di bawah kursor |
+| `Leader + rn` | `vim.lsp.buf.rename` | Rename nama simbol di seluruh project |
+| `Leader + ca` | `vim.lsp.buf.code_action` | Tampilkan menu saran perbaikan (code action) |
+| `[d` | `vim.diagnostic.goto_prev` | Lompat ke error/diagnostic sebelumnya |
+| `]d` | `vim.diagnostic.goto_next` | Lompat ke error/diagnostic berikutnya |
+
+#### Hop (Navigasi Cepat Teks)
+| Shortcut | Perintah | Deskripsi |
+|---|---|---|
+| `Leader + hw` | `HopWord` | Lompat cepat ke kata tertentu di dalam buffer |
+| `Leader + hl` | `HopLine` | Lompat cepat ke baris tertentu |
+
+#### Git Integration
+| Shortcut | Plugin | Deskripsi |
+|---|---|---|
+| `Leader + gs` | Fugitive | Buka panel interaktif Git status (`:Git`) |
+| `Leader + gd` | Diffview | Buka tampilan Git diff seluruh project |
+| `Leader + gh` | Diffview | Buka histori commit & diff file saat ini |
+
+#### Testing (Neotest)
+| Shortcut | Perintah | Deskripsi |
+|---|---|---|
+| `Leader + tn` | `run.run()` | Jalankan unit test terdekat dari kursor |
+| `Leader + tf` | `run.run(file)` | Jalankan semua test di file ini |
+| `Leader + to` | `output.open()` | Buka window hasil/output eksekusi test |
+| `Leader + ts` | `summary.toggle()` | Toggle panel ringkasan test |
+
+#### Mini.nvim (Editing Utilities)
+| Shortcut | Modul | Deskripsi |
+|---|---|---|
+| `gcc` | Mini.comment | Toggle komentar pada baris saat ini |
+| `gc` | Mini.comment | Toggle komentar pada pilihan Visual mode |
+| `sa` | Mini.surround | Tambahkan tanda kurung/kutip mengelilingi teks |
+| `sd` | Mini.surround | Hapus tanda kurung/kutip pengeliling |
+| `sr` | Mini.surround | Ganti tanda kurung/kutip pengeliling |
 
 ---
 
-##  Keyboard Shortcuts Cheat Sheet
+### 2. Shortcut Bawaan Neovim (Default Keymaps)
 
-All custom commands use **`<Space>`** as the leader key.
+#### Navigasi Kursor & Layar
+| Shortcut | Pergerakan / Fungsi |
+|---|---|
+| `h` / `j` / `k` / `l` | Kiri / Bawah / Atas / Kanan |
+| `w` / `b` / `e` | Maju per kata / Mundur per kata / Ke akhir kata |
+| `0` / `$` / `^` | Ke awal baris / Ke akhir baris / Ke karakter pertama non-spasi |
+| `gg` / `G` | Ke awal dokumen (baris 1) / Ke paling akhir dokumen |
+| `Ctrl + u` / `Ctrl + d` | Scroll setengah layar ke atas / ke bawah |
+| `Ctrl + f` / `Ctrl + b` | Scroll satu layar penuh ke bawah / ke atas |
+| `%` | Lompat ke kurung pasangannya `()`, `{}`, `[]` |
 
-### General Navigation & Pane Management
-| Keybinding | Mode | Action |
-|:---|:---:|:---|
-| **`<Ctrl> + h / j / k / l`** | Normal | Move cursor to Left / Down / Up / Right window split |
-| **`<Ctrl> + Arrows`** | Normal | Resize window boundaries (Up, Down, Left, Right) |
-| **`<Shift> + h`** | Normal | Go to **previous** buffer (tab left) |
-| **`<Shift> + l`** | Normal | Go to **next** buffer (tab right) |
-| **`<Space> + w`** | Normal | Save current file (`:w`) |
-| **`<Space> + q`** | Normal | Close current window (`:q`) |
-| **`<Space> + c`** | Normal | Close current buffer/file (`:bd`) |
-| **`<Esc><Esc>`** | Terminal | Switch to Normal mode inside the built-in terminal |
+#### Editing & Manipulasi Teks
+| Shortcut | Fungsi |
+|---|---|
+| `i` / `a` | Masuk Insert mode sebelum kursor / setelah kursor |
+| `o` / `O` | Buat baris baru & masuk Insert mode di bawah / di atas baris |
+| `x` / `dw` / `dd` | Hapus 1 karakter / Hapus 1 kata / Hapus 1 baris |
+| `yy` / `y$` | Copy (yank) 1 baris / Copy dari kursor sampai akhir baris |
+| `p` / `P` | Paste setelah kursor / sebelum kursor |
+| `u` / `Ctrl + r` | Undo / Redo perubahan terakhir |
+| `.` | Ulangi (repeat) perintah edit terakhir |
 
-### File Search & Exploration
-| Keybinding | Mode | Action |
-|:---|:---:|:---|
-| **`<Space> + e`** | Normal | Toggle **Neo-tree** (classic sidebar directory explorer) |
-| **`-`** | Normal | Open parent directory in **Oil.nvim** (text-buffer mode) |
-| **`<Space> + ff`** | Normal | Fuzzy search files by name (using `fd`) |
-| **`<Space> + fg`** | Normal | Fuzzy search text inside all files (using `ripgrep`) |
-| **`<Space> + fb`** | Normal | Search currently open buffers |
-| **`<Space> + fs`** | Normal | Search workspace for the word currently under cursor |
-| **`<Space> + fr`** | Normal | Resume the last `fzf-lua` search |
-| **`<Space> + h`** or **`<Esc>`** | Normal | Clear highlighting of search matches |
+#### Mode Visual (Selection)
+| Shortcut | Fungsi |
+|---|---|
+| `v` | Masuk Visual mode (pilihan karakter) |
+| `V` | Masuk Visual Line mode (pilihan baris) |
+| `Ctrl + v` | Masuk Visual Block mode (pilihan blok/kolom tegak lurus) |
+| `y` / `d` / `c` | Copy / Delete / Change teks yang dipilih |
 
-### Text Editing Utilities
-| Keybinding | Mode | Action |
-|:---|:---:|:---|
-| **`J`** | Visual | Move selected lines/blocks **down** |
-| **`K`** | Visual | Move selected lines/blocks **up** |
-| **`<`** | Visual | Shift text left (keeps selection active for multiple indents) |
-| **`>`** | Visual | Shift text right (keeps selection active) |
-| **`<Ctrl> + d`** | Normal | Scroll page down (keeps cursor centered `zz`) |
-| **`<Ctrl> + u`** | Normal | Scroll page up (keeps cursor centered `zz`) |
+#### Pencarian & Penggantian (Search & Replace)
+| Shortcut | Fungsi |
+|---|---|
+| `/pattern` | Cari `pattern` ke depan (`n` berikutnya, `N` sebelumnya) |
+| `?pattern` | Cari `pattern` ke belakang |
+| `*` / `#` | Cari kata di bawah kursor ke arah depan / belakang |
+| `:%s/old/new/g` | Ganti semua kata `old` menjadi `new` di seluruh file |
 
-### Autocomplete (`nvim-cmp`)
-| Keybinding | Mode | Action |
-|:---|:---:|:---|
-| **`<Ctrl> + j / k`** | Insert | Navigate down / up autocomplete popup menu |
-| **`<Ctrl> + Space`** | Insert | Manually trigger autocomplete suggestions |
-| **`<Ctrl> + e`** | Insert | Close completion menu |
-| **`<CR>` (Enter)** | Insert | Confirm suggestion |
-| **`<Tab>`** | Insert/Select | Next item or jump forward in Snippet template |
-| **`<Shift> + Tab`** | Insert/Select | Previous item or jump backward in Snippet template |
-
-### LSP & Full-Stack Development
-These keymaps attach dynamically only when a language server is running in your current buffer.
-
-| Keybinding | Mode | Action |
-|:---|:---:|:---|
-| **`K`** | Normal | Show documentation / type signatures on hover |
-| **`gd`** | Normal | Jump to symbol definition |
-| **`gD`** | Normal | Jump to symbol declaration |
-| **`gi`** | Normal | Jump to implementation |
-| **`gr`** | Normal | Find all references of symbol |
-| **`<Space> + rn`** | Normal | Rename symbol workspace-wide |
-| **`<Space> + ca`** | Normal/Visual | Trigger code actions / quick-fixes |
-| **`<Space> + d`** | Normal | Show diagnostics (errors/warnings) under cursor in a float |
-| **`[d` / `]d`** | Normal | Go to previous / next diagnostic error |
-
----
-
-##  Managing Language Servers (LSPs) & Tooling
-
-This setup utilizes **Mason** to manage servers automatically. To add support for JS/TS, Python, HTML, Go, etc.:
-
-1. Type `:Mason` inside Neovim.
-2. Search for the tool or server you need (e.g., `typescript-language-server`, `pyright`, `tailwindcss-language-server`).
-3. Press `i` to install it.
-4. Once installed, it is configured to auto-start and map shortcuts dynamically.
+#### Manajemen Window & Split
+| Shortcut | Fungsi |
+|---|---|
+| `:sp` / `:vsp` | Split window secara horizontal / vertikal |
+| `Ctrl + w` lalu `w` | Pindah fokus ke window berikutnya |
+| `Ctrl + w` lalu `c` | Tutup window yang sedang aktif |
+| `Ctrl + w` lalu `o` | Tutup semua window lain (Close Others) |
+| `Ctrl + w` lalu `=` | Ratakan ukuran seluruh split window |

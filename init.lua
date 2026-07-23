@@ -1,8 +1,6 @@
--- Set mapleader to space before loading lazy.nvim
-vim.g.mapleader = " "
-vim.g.maplocalleader = " "
+-- ~/.config/nvim/init.lua
+-- Entry point. Loads core options/keymaps, bootstraps lazy.nvim, then loads all plugin specs.
 
--- Load core configurations
 require("config.options")
-require("config.lazy")
 require("config.keymaps")
+require("config.lazy")
