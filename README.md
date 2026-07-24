@@ -32,6 +32,16 @@ nvim
 Saat pertama kali dibuka, `lazy.nvim` akan otomatis bootstrap dirinya sendiri lalu
 install semua plugin di bawah ini. Tunggu sampai selesai, lalu restart nvim.
 
+## Instalasi & Persiapan Graphify (Tool Eksternal)
+
+Graphify berfungsi untuk mengekstrak seluruh arsitektur proyek (_codebase_) menjadi teks ringan yang bisa dipahami AI tanpa membebani memori.
+
+1.  Install uv di terminal laptop Anda: curl -LsSf \[https://astral.sh/uv/install.sh\](https://astral.sh/uv/install.sh) | sh
+    
+2.  Install Graphify (versi terintegrasi Ollama): uv tool install "graphifyy\[ollama\]"
+    
+3.  **Setiap kali memulai/mengubah proyek:** Masuk ke folder root proyek melalui terminal laptop dan jalankan graphify . untuk menghasilkan laporan arsitektur pada folder graphify-out/.
+
 ## Struktur folder
 
 ```
