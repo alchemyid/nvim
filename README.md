@@ -40,7 +40,7 @@ Graphify berfungsi untuk mengekstrak seluruh arsitektur proyek (_codebase_) menj
     
 2.  Install Graphify (versi terintegrasi Ollama): uv tool install "graphifyy\[ollama\]"
 
-3.  Beri tahu Graphify di mana lokasi Ollama Anda berada **export OLLAMA_BASE_URL="http://192.168.0.100:11434"**
+3.  Beri tahu Graphify di mana lokasi Ollama Anda berada **export OLLAMA_BASE_URL="http://192.168.0.100:11434/v1"**
 
 4.  Setiap kali memulai project, masuk ke folder root project kemudian execute **graphify extact . --backend ollama** agar graphify menggunakan ollama local.
 
