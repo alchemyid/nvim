@@ -310,98 +310,100 @@ return {
         {
             "<leader>ab",
             function()
-                -- ── Tentukan buffer mana yang akan disertakan ────────────────
-                local target_buf, target_win
-                local cur_buf = vim.api.nvim_get_current_buf()
-                local cur_ft  = vim.bo[cur_buf].filetype
+                local run_add
+                run_add = function(is_retry)
+                    -- ── Tentukan buffer mana yang akan disertakan ────────────────
+                    local target_buf, target_win
+                    local cur_buf = vim.api.nvim_get_current_buf()
 
-                -- Cek apakah buffer saat ini adalah buffer kode normal (buftype kosong & filetype bukan utility/special)
-                local function is_code_buffer(buf)
-                    local ft = vim.bo[buf].filetype
-                    local bt = vim.bo[buf].buftype
-                    return ft ~= "codecompanion"
-                        and ft ~= ""
-                        and bt == ""
-                        and ft ~= "neo-tree"
-                        and ft ~= "NvimTree"
-                        and ft ~= "toggleterm"
-                        and ft ~= "qf"
-                        and ft ~= "help"
-                end
+                    -- Cek apakah buffer saat ini adalah buffer kode normal (buftype kosong & filetype bukan utility/special)
+                    local function is_code_buffer(buf)
+                        local ft = vim.bo[buf].filetype
+                        local bt = vim.bo[buf].buftype
+                        return ft ~= "codecompanion"
+                            and ft ~= ""
+                            and bt == ""
+                            and ft ~= "neo-tree"
+                            and ft ~= "NvimTree"
+                            and ft ~= "toggleterm"
+                            and ft ~= "qf"
+                            and ft ~= "help"
+                    end
 
-                if is_code_buffer(cur_buf) then
-                    -- Sedang fokus di file code → pakai buffer ini
-                    target_buf = cur_buf
-                else
-                    -- Sedang di chat/utility → cari file code di window lain
+                    if is_code_buffer(cur_buf) then
+                        -- Sedang fokus di file code → pakai buffer ini
+                        target_buf = cur_buf
+                    else
+                        -- Sedang di chat/utility → cari file code di window lain
+                        for _, win in ipairs(vim.api.nvim_list_wins()) do
+                            local wbuf = vim.api.nvim_win_get_buf(win)
+                            if is_code_buffer(wbuf) then
+                                target_buf = wbuf
+                                target_win = win
+                                break
+                            end
+                        end
+                    end
+
+                    if not target_buf then
+                        vim.notify(
+                            "⚠  Buka file code di split (`:vsp file`) dulu,\n" ..
+                            "lalu tekan <leader>ab. Atau ketik /buffer di dalam chat.",
+                            vim.log.levels.WARN,
+                            { title = "CodeCompanion" }
+                        )
+                        return
+                    end
+
+                    -- ── Baca isi buffer langsung ─────────────────────────────────
+                    local lines    = vim.api.nvim_buf_get_lines(target_buf, 0, -1, false)
+                    local filepath = vim.api.nvim_buf_get_name(target_buf)
+                    local filename = vim.fn.fnamemodify(filepath, ":~:.")  -- path relatif
+                    local ft       = vim.bo[target_buf].filetype
+
+                    -- ── Temukan chat buffer dan suntikkan konten ─────────────────
+                    local chat_win
                     for _, win in ipairs(vim.api.nvim_list_wins()) do
-                        local wbuf = vim.api.nvim_win_get_buf(win)
-                        if is_code_buffer(wbuf) then
-                            target_buf = wbuf
-                            target_win = win
+                        if vim.bo[vim.api.nvim_win_get_buf(win)].filetype == "codecompanion" then
+                            chat_win = win
                             break
                         end
                     end
-                end
 
-                if not target_buf then
+                    if not chat_win then
+                        -- Belum ada chat terbuka → buka dulu
+                        vim.cmd("CodeCompanionChat Toggle")
+                        vim.defer_fn(function()
+                            -- Panggil ulang setelah chat terbuka
+                            run_add(true)
+                        end, 300)
+                        return
+                    end
+
+                    local chat_buf = vim.api.nvim_win_get_buf(chat_win)
+
+                    -- Append code block ke akhir chat buffer (area input user)
+                    local code_lines = vim.list_extend(
+                        { "", "File: `" .. filename .. "`", "```" .. ft },
+                        lines
+                    )
+                    vim.list_extend(code_lines, { "```", "" })
+
+                    local last = vim.api.nvim_buf_line_count(chat_buf)
+                    vim.api.nvim_buf_set_lines(chat_buf, last, -1, false, code_lines)
+
+                    -- Fokus ke chat, cursor ke akhir
+                    vim.api.nvim_set_current_win(chat_win)
+                    vim.api.nvim_win_set_cursor(chat_win, { vim.api.nvim_buf_line_count(chat_buf), 0 })
+                    vim.cmd("startinsert!")
+
                     vim.notify(
-                        "⚠  Buka file code di split (`:vsp file`) dulu,\n" ..
-                        "lalu tekan <leader>ab. Atau ketik /buffer di dalam chat.",
-                        vim.log.levels.WARN,
+                        "✓ " .. filename .. " disertakan ke chat",
+                        vim.log.levels.INFO,
                         { title = "CodeCompanion" }
                     )
-                    return
                 end
-
-                -- ── Baca isi buffer langsung ─────────────────────────────────
-                local lines    = vim.api.nvim_buf_get_lines(target_buf, 0, -1, false)
-                local content  = table.concat(lines, "\n")
-                local filepath = vim.api.nvim_buf_get_name(target_buf)
-                local filename = vim.fn.fnamemodify(filepath, ":~:.")  -- path relatif
-                local ft       = vim.bo[target_buf].filetype
-
-                -- ── Temukan chat buffer dan suntikkan konten ─────────────────
-                local chat_win
-                for _, win in ipairs(vim.api.nvim_list_wins()) do
-                    if vim.bo[vim.api.nvim_win_get_buf(win)].filetype == "codecompanion" then
-                        chat_win = win
-                        break
-                    end
-                end
-
-                if not chat_win then
-                    -- Belum ada chat terbuka → buka dulu
-                    vim.cmd("CodeCompanionChat Toggle")
-                    vim.defer_fn(function()
-                        -- Panggil ulang setelah chat terbuka
-                        vim.api.nvim_feedkeys("<leader>ab", "n", false)
-                    end, 300)
-                    return
-                end
-
-                local chat_buf = vim.api.nvim_win_get_buf(chat_win)
-
-                -- Append code block ke akhir chat buffer (area input user)
-                local code_lines = vim.list_extend(
-                    { "", "File: `" .. filename .. "`", "```" .. ft },
-                    lines
-                )
-                vim.list_extend(code_lines, { "```", "" })
-
-                local last = vim.api.nvim_buf_line_count(chat_buf)
-                vim.api.nvim_buf_set_lines(chat_buf, last, -1, false, code_lines)
-
-                -- Fokus ke chat, cursor ke baris kosong setelah code block
-                vim.api.nvim_set_current_win(chat_win)
-                vim.api.nvim_win_set_cursor(chat_win, { vim.api.nvim_buf_line_count(chat_buf), 0 })
-                vim.cmd("startinsert!")
-
-                vim.notify(
-                    "✓ " .. filename .. " disertakan ke chat",
-                    vim.log.levels.INFO,
-                    { title = "CodeCompanion" }
-                )
+                run_add(false)
             end,
             mode = { "n", "v" },
             desc = "AI: Add buffer to chat",
