@@ -7,10 +7,12 @@ dikonfigurasi agar warnanya konsisten.
 
 ## Requirement
 
-- **Neovim >= 0.9** (wajib untuk onedark.nvim versi terbaru — treesitter captures modern,
-  LSP semantic tokens, dst). Kalau masih pakai Neovim 0.5–0.8, lihat catatan di
-  `lua/plugins/colorscheme.lua` untuk pin ke tag `v0.1.0`.
+- **Neovim >= 0.12** (wajib — menggunakan built-in treesitter, bukan plugin
+  `nvim-treesitter` yang sudah di-archive). Untuk fitur LSP semantic tokens, dsb.
 - `git` terpasang di PATH (dipakai lazy.nvim untuk clone plugin).
+- `tree-sitter` CLI (dipakai `tree-sitter-manager.nvim` untuk compile parser bahasa).
+  Install via: `npm install -g tree-sitter-cli`
+- `gcc` atau `clang` (C compiler untuk build parser).
 - Opsional: [Nerd Font](https://www.nerdfonts.com/) di terminal, supaya icon
   (nvim-web-devicons, dashboard, lualine, dll) tampil dengan benar.
 
@@ -42,7 +44,7 @@ install semua plugin di bawah ini. Tunggu sampai selesai, lalu restart nvim.
     │   └── lazy.lua              -- bootstrap + loader lazy.nvim
     └── plugins/
         ├── colorscheme.lua       -- onedark.nvim (theme utama)
-        ├── treesitter.lua        -- TreeSitter
+        ├── treesitter.lua        -- Built-in TreeSitter + tree-sitter-manager
         ├── lsp.lua                -- native LSP + mason (untuk LSPDiagnostics)
         ├── nvim-tree.lua          -- NvimTree
         ├── neo-tree.lua           -- Neo-tree (alternatif nvim-tree)
@@ -59,7 +61,9 @@ install semua plugin di bawah ini. Tunggu sampai selesai, lalu restart nvim.
         ├── barbecue.lua           -- Barbecue
         ├── indent-blankline.lua   -- IndentBlankline
         ├── indentmini.lua         -- indentmini (alternatif, nonaktif default)
-        └── illuminate.lua         -- vim-illuminate
+        ├── illuminate.lua         -- vim-illuminate
+        ├── terminal.lua           -- toggleterm.nvim (terminal terintegrasi, mirip VSCode)
+        └── codecompanion.lua      -- codecompanion.nvim (AI chat & inline edit via Ollama)
 ```
 
 Setiap file di `lua/plugins/` adalah satu spec `lazy.nvim` yang otomatis ter-load lewat
@@ -70,7 +74,7 @@ baru, tanpa perlu edit file lain.
 
 | Plugin (README onedark.nvim) | Status | Catatan |
 |---|---|---|
-| TreeSitter | ✅ Aktif | `treesitter.lua` |
+| TreeSitter | ✅ Aktif | `treesitter.lua` — built-in Neovim 0.12 + `tree-sitter-manager.nvim` (pengganti `nvim-treesitter` yang sudah archived) |
 | LSP Diagnostics | ✅ Aktif | `lsp.lua` (native `vim.diagnostic` + mason) |
 | NvimTree | ✅ Aktif | `nvim-tree.lua`, `<leader>e` |
 | Telescope | ✅ Aktif | `telescope.lua`, `<leader>ff/fg/fb/fh` |
@@ -89,6 +93,8 @@ baru, tanpa perlu edit file lain.
 | IndentBlankline | ✅ Aktif | `indent-blankline.lua` |
 | vim-illuminate | ✅ Aktif | `illuminate.lua` |
 | indentmini | ⚪ Opsional | `indentmini.lua`, nonaktif default — alternatif indent-blankline |
+| codecompanion.nvim (Ollama) | ✅ Aktif | `codecompanion.lua`, AI chat sidebar + inline edit via Ollama lokal (experience mirip VSCode Copilot Chat) |
+| toggleterm.nvim | ✅ Aktif | `terminal.lua`, terminal terintegrasi dengan toggle shortcut mirip VSCode (`Ctrl+\``) |
 
 Yang ditandai "Opsional" sengaja dibuat sebagai alternatif berdampingan (bukan
 dijalankan bersamaan), karena fungsinya tumpang tindih dengan plugin lain yang sudah
@@ -179,6 +185,58 @@ Tombol **Leader** pada konfigurasi ini diset ke tombol **`Space`** (Spasi).
 | `sa` | Mini.surround | Tambahkan tanda kurung/kutip mengelilingi teks |
 | `sd` | Mini.surround | Hapus tanda kurung/kutip pengeliling |
 | `sr` | Mini.surround | Ganti tanda kurung/kutip pengeliling |
+
+#### Terminal Terintegrasi (toggleterm.nvim)
+| Shortcut | Mode | Deskripsi |
+|---|---|---|
+| `Leader + tt` | Normal / Terminal | **Toggle terminal di bawah** — panel horizontal mirip VSCode |
+| `Leader + tz` | Normal / Terminal | Toggle terminal floating (popup di tengah layar) |
+| `Leader + tv` | Normal | Buka terminal vertikal (sidebar kanan) |
+| `Leader + tg` | Normal | Buka **Lazygit** di floating terminal |
+
+> `Ctrl+t` tidak dipakai karena terminal emulator (GNOME Terminal, Tilix, dll) mencurinya untuk membuka tab baru sebelum Neovim sempat menerimanya.
+
+**Di dalam terminal:**
+| Shortcut | Deskripsi |
+|---|---|
+| `Esc` | Masuk Normal mode (untuk navigasi atau copy-paste) |
+| `Ctrl + h/j/k/l` | Pindah ke window Neovim lain tanpa keluar terminal |
+
+#### AI Coding Assistant (codecompanion.nvim + Ollama)
+
+> Plugin: [`codecompanion.nvim`](https://github.com/olimorris/codecompanion.nvim) — experience mirip VSCode Copilot Chat.
+> Pastikan Ollama service berjalan (`ollama serve`) sebelum menggunakan fitur AI.
+
+**Chat & General**
+| Shortcut | Mode | Deskripsi |
+|---|---|---|
+| `Leader + ac` | Normal / Visual | **Toggle chat sidebar** — buka/tutup panel chat AI di sebelah kanan |
+| `Leader + aa` | Normal / Visual | Actions palette — daftar semua aksi AI yang tersedia |
+| `Leader + ai` | Normal / Visual | Inline edit — minta AI tulis/edit langsung di buffer |
+| `Leader + ab` | Normal / Visual | Tambah buffer aktif sebagai context ke chat |
+
+**Shortcut Koding (Visual Mode — seleksi kode dulu)**
+| Shortcut | Mode | Deskripsi |
+|---|---|---|
+| `Leader + ar` | Visual | Review code — analisis bug, performa, keamanan (tampil di chat) |
+| `Leader + af` | Visual | Fix bugs — perbaiki error, hasil langsung replace kode yang dipilih |
+| `Leader + ax` | Visual | Explain code — jelaskan kode langkah per langkah (tampil di chat) |
+| `Leader + ad` | Visual | Add documentation — tambahkan komentar/dokumentasi (langsung replace) |
+| `Leader + at` | Visual | Generate tests — buat unit test (tampil di chat) |
+| `Leader + ao` | Visual | Refactor code — optimasi readability & performa (langsung replace) |
+
+**Shortcut di dalam Chat Buffer**
+| Shortcut | Mode | Deskripsi |
+|---|---|---|
+| `Ctrl + s` | Insert | Kirim pesan ke AI |
+| `Enter` | Normal | Kirim pesan ke AI |
+| `Ctrl + c` | Normal | Stop generation AI |
+| `q` | Normal | Tutup / sembunyikan chat sidebar |
+| `ga` | Normal | Ganti model atau adapter |
+
+> **Tips:** Gunakan `@buffer` atau `@files` di dalam chat untuk menyertakan konteks kode.
+> Shortcut `Leader + af`, `Leader + ad`, dan `Leader + ao` langsung mengganti kode yang dipilih
+> (inline replace). Shortcut lainnya menampilkan response di chat sidebar.
 
 ---
 
