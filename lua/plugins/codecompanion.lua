@@ -1,4 +1,4 @@
--- lua/plugins/codecompanion.lua
+--v lua/plugins/codecompanion.lua
 -- AI Chat & Inline Edit berbasis Ollama, experience mirip VSCode Copilot Chat.
 --
 -- Fitur utama:
@@ -25,29 +25,31 @@ return {
     opts = {
         -- ─── Adapter: Ollama lokal ───────────────────────────────────────
         adapters = {
-            ollama = function()
-                return require("codecompanion.adapters").extend("ollama", {
-                    name = "ollama",
-                    env = {
-                        url = "http://127.0.0.1:11434",
-                    },
-                    schema = {
-                        model = {
-                            default = "sorc/qwen3.5-claude-4.6-opus:latest",
+            http = {
+                ollama = function()
+                    return require("codecompanion.adapters").extend("ollama", {
+                        name = "ollama",
+                        env = {
+                            url = "http://192.168.0.100:11434",
                         },
-                        num_ctx = {
-                            default = 16384,
+                        schema = {
+                            model = {
+                                default = "sorc/qwen3.5-claude-4.6-opus:latest",
+                            },
+                            num_ctx = {
+                                default = 16384,
+                            },
                         },
-                    },
-                })
-            end,
-            anthropic = function()
-                return require("codecompanion.adapters").extend("anthropic", {
-                    env = {
-                        api_key = "ANTHROPIC_API_KEY",
-                    },
-                })
-            end,
+                    })
+                end,
+                anthropic = function()
+                    return require("codecompanion.adapters").extend("anthropic", {
+                        env = {
+                            api_key = "ANTHROPIC_API_KEY",
+                        },
+                    })
+                end,
+            },
         },
 
         -- ─── Strategi per mode ───────────────────────────────────────────
