@@ -39,8 +39,10 @@ Graphify berfungsi untuk mengekstrak seluruh arsitektur proyek (_codebase_) menj
 1.  Install uv di terminal laptop Anda: curl -LsSf \[https://astral.sh/uv/install.sh\](https://astral.sh/uv/install.sh) | sh
     
 2.  Install Graphify (versi terintegrasi Ollama): uv tool install "graphifyy\[ollama\]"
-    
-3.  **Setiap kali memulai/mengubah proyek:** Masuk ke folder root proyek melalui terminal laptop dan jalankan graphify . untuk menghasilkan laporan arsitektur pada folder graphify-out/.
+
+3.  Beri tahu Graphify di mana lokasi Ollama Anda berada export OLLAMA_API_BASE="http://192.168.0.100:11434"
+
+4.  Setiap kali memulai project, masuk ke folder root project kemudian execute **graphify . --model ollama/qwen2.5-coder:7b** agar graphify menggunakan ollama local.
 
 ## Struktur folder
 
