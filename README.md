@@ -207,23 +207,24 @@ Tombol **Leader** pada konfigurasi ini diset ke tombol **`Space`** (Spasi).
 > Plugin: [`codecompanion.nvim`](https://github.com/olimorris/codecompanion.nvim) — experience mirip VSCode Copilot Chat.
 > Pastikan Ollama service berjalan (`ollama serve`) sebelum menggunakan fitur AI.
 
-**Chat & General**
+**Chat & General (Input Context & Setup)**
 | Shortcut | Mode | Deskripsi |
 |---|---|---|
 | `Leader + ac` | Normal / Visual | **Toggle chat sidebar** — buka/tutup panel chat AI di sebelah kanan |
 | `Leader + aa` | Normal / Visual | Actions palette — daftar semua aksi AI yang tersedia |
 | `Leader + ai` | Normal / Visual | Inline edit — minta AI tulis/edit langsung di buffer |
-| `Leader + ab` | Normal / Visual | Tambah buffer aktif sebagai context ke chat |
+| `Leader + ab` | Normal / Visual | Tambah buffer file aktif sebagai context ke chat |
+| `Leader + aD` | Normal / Visual | Tambah semua file dalam direktori ke chat (akhiri dengan `!` untuk rekursif) |
 
-**Shortcut Koding (Visual Mode — seleksi kode dulu)**
+**Shortcut Aksi Koding (Bekerja pada seluruh file aktif atau kode terseleksi)**
 | Shortcut | Mode | Deskripsi |
 |---|---|---|
-| `Leader + ar` | Visual | Review code — analisis bug, performa, keamanan (tampil di chat) |
-| `Leader + af` | Visual | Fix bugs — perbaiki error, hasil langsung replace kode yang dipilih |
-| `Leader + ax` | Visual | Explain code — jelaskan kode langkah per langkah (tampil di chat) |
-| `Leader + ad` | Visual | Add documentation — tambahkan komentar/dokumentasi (langsung replace) |
-| `Leader + at` | Visual | Generate tests — buat unit test (tampil di chat) |
-| `Leader + ao` | Visual | Refactor code — optimasi readability & performa (langsung replace) |
+| `Leader + ar` | Normal / Visual | Review code — analisis bug, performa, keamanan (tampil di chat) |
+| `Leader + af` | Normal / Visual | Fix bugs — perbaiki error (langsung menimpa/replace kode) |
+| `Leader + ae` | Normal / Visual | Explain code — jelaskan kode langkah demi langkah (tampil di chat) |
+| `Leader + ad` | Normal / Visual | Add documentation — tambahkan komentar/dokumentasi (langsung replace) |
+| `Leader + at` | Normal / Visual | Generate tests — buat unit test untuk kode (tampil di chat) |
+| `Leader + ao` | Normal / Visual | Refactor code — optimasi readability & performa (langsung replace) |
 
 **Shortcut di dalam Chat Buffer**
 | Shortcut | Mode | Deskripsi |
@@ -235,8 +236,8 @@ Tombol **Leader** pada konfigurasi ini diset ke tombol **`Space`** (Spasi).
 | `ga` | Normal | Ganti model atau adapter |
 
 > **Tips:** Gunakan `@buffer` atau `@files` di dalam chat untuk menyertakan konteks kode.
-> Shortcut `Leader + af`, `Leader + ad`, dan `Leader + ao` langsung mengganti kode yang dipilih
-> (inline replace). Shortcut lainnya menampilkan response di chat sidebar.
+> - Shortcut aksi koding dapat ditekan di **Normal Mode** (untuk memproses satu file penuh) atau **Visual Mode** (untuk memproses bagian kode yang di-blok saja).
+> - Shortcut `Leader + af`, `Leader + ad`, dan `Leader + ao` langsung mengganti kode asal secara inline (*replace*). Shortcut lainnya menampilkan response di chat sidebar.
 
 ---
 

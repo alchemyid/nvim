@@ -19,7 +19,9 @@ return {
   -- ── 1. Parser manager utama ──────────────────────────────────────────
   {
     "romus204/tree-sitter-manager.nvim",
-    event = { "BufReadPost", "BufNewFile" },
+    -- VeryLazy: parser diinstall setelah startup, tidak memblokir render
+    -- buffer pertama (menghindari blink saat pertama kali buka file).
+    event = "VeryLazy",
     config = function()
       require("tree-sitter-manager").setup({
         ensure_installed = {
@@ -27,16 +29,16 @@ return {
           "bash", "json", "yaml", "markdown", "markdown_inline",
           "python", "javascript", "typescript", "tsx", "html", "css",
         },
-        auto_install = true,  -- otomatis install parser saat buka file baru
+        -- auto_install DINONAKTIFKAN: compile parser saat buka file
+        -- menyebabkan editor blink/flicker. Parser di-ensure saat startup
+        -- via ensure_installed di atas. Untuk bahasa baru, jalankan manual:
+        --   :TSInstall <language>
+        auto_install = false,
       })
 
-      -- Aktifkan treesitter highlight & indent bawaan Neovim untuk semua filetype
-      vim.api.nvim_create_autocmd("FileType", {
-        group = vim.api.nvim_create_augroup("NativeTreesitter", { clear = true }),
-        callback = function()
-          pcall(vim.treesitter.start)
-        end,
-      })
+      -- CATATAN: pcall(vim.treesitter.start) TIDAK diperlukan di Neovim 0.12+.
+      -- Built-in treesitter otomatis aktif ketika parser tersedia untuk filetype.
+      -- Menjalankannya manual menyebabkan double-render → blink.
 
       -- Treesitter-based folding (opsional, uncomment kalau mau)
       -- vim.opt.foldmethod = "expr"
