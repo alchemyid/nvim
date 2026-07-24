@@ -11,7 +11,9 @@ dikonfigurasi agar warnanya konsisten.
   `nvim-treesitter` yang sudah di-archive). Untuk fitur LSP semantic tokens, dsb.
 - `git` terpasang di PATH (dipakai lazy.nvim untuk clone plugin).
 - `tree-sitter` CLI (dipakai `tree-sitter-manager.nvim` untuk compile parser bahasa).
-  Install via: `npm install -g tree-sitter-cli`
+  Install via: ```bash
+npm install -g tree-sitter-cli
+```
 - `gcc` atau `clang` (C compiler untuk build parser).
 - Opsional: [Nerd Font](https://www.nerdfonts.com/) di terminal, supaya icon
   (nvim-web-devicons, dashboard, lualine, dll) tampil dengan benar.
