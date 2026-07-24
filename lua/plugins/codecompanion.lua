@@ -17,7 +17,8 @@ return {
     "olimorris/codecompanion.nvim",
     dependencies = {
         "nvim-lua/plenary.nvim",
-        "nvim-treesitter/nvim-treesitter",  -- diperlukan untuk render Markdown di chat buffer
+        "nvim-treesitter/nvim-treesitter",           -- diperlukan untuk render Markdown di chat buffer
+        "ravitemer/codecompanion-history.nvim",      -- history: save, browse & restore chat sessions
     },
     opts = {
         -- ─── Adapter: Ollama lokal ───────────────────────────────────────
@@ -65,6 +66,42 @@ return {
             },
             cmd = {
                 adapter = "ollama",
+            },
+        },
+
+        -- ─── Chat History (auto-save & restore) ──────────────────────────
+        extensions = {
+            history = {
+                enabled = true,
+                opts = {
+                    -- gh → buka history browser dari dalam chat buffer
+                    keymap = "gh",
+                    -- sc → simpan chat secara manual (jika auto_save = false)
+                    save_chat_keymap = "sc",
+                    -- Simpan otomatis setiap kali ada response dari AI
+                    auto_save = true,
+                    -- Hapus otomatis setelah N hari (0 = tidak pernah dihapus)
+                    expiration_days = 30,
+                    -- Gunakan Telescope untuk browse history
+                    picker = "telescope",
+                    -- Generate judul otomatis dari isi percakapan
+                    auto_generate_title = true,
+                    title_generation_opts = {
+                        -- Pakai model yang sama dengan chat
+                        adapter = nil,
+                        model = nil,
+                        -- Refresh judul setiap 3 prompt (0 = tidak pernah refresh)
+                        refresh_every_n_prompts = 0,
+                        max_refreshes = 1,
+                    },
+                    -- Lanjutkan chat terakhir saat buka Neovim
+                    continue_last_chat = false,
+                    -- Hapus dari history saat chat di-clear dengan gx
+                    delete_on_clearing_chat = false,
+                    -- Lokasi penyimpanan history
+                    dir_to_save = vim.fn.stdpath("data") .. "/codecompanion-history",
+                    enable_logging = false,
+                },
             },
         },
 
