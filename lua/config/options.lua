@@ -1,6 +1,8 @@
--- lua/config/options.lua
--- Basic sane defaults. Requires Neovim >= 0.9 (needed by onedark.nvim's
--- TreeSitter/LSP semantic token support).
+-- Ensure ~/.local/bin is in Neovim's PATH for tools like tree-sitter CLI
+local local_bin = vim.fn.expand("~/.local/bin")
+if vim.fn.isdirectory(local_bin) == 1 and not string.find(vim.env.PATH or "", local_bin, 1, true) then
+  vim.env.PATH = local_bin .. ":" .. (vim.env.PATH or "")
+end
 
 local opt = vim.opt
 

@@ -23,6 +23,11 @@ return {
     -- buffer pertama (menghindari blink saat pertama kali buka file).
     event = "VeryLazy",
     config = function()
+      if vim.fn.executable("tree-sitter") == 0 then
+        vim.notify("tree-sitter CLI tidak ditemukan di PATH.", vim.log.levels.WARN, { title = "tree-sitter-manager" })
+        return
+      end
+
       require("tree-sitter-manager").setup({
         ensure_installed = {
           "lua", "vim", "vimdoc", "query",
