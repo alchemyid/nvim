@@ -63,6 +63,7 @@ install semua plugin di bawah ini. Tunggu sampai selesai, lalu restart nvim.
         ├── indentmini.lua         -- indentmini (alternatif, nonaktif default)
         ├── illuminate.lua         -- vim-illuminate
         ├── terminal.lua           -- toggleterm.nvim (terminal terintegrasi, mirip VSCode)
+        ├── completion.lua         -- nvim-cmp (autocomplete engine + snippets & AI integration)
         └── codecompanion.lua      -- codecompanion.nvim (AI chat & inline edit via Ollama)
 ```
 
@@ -95,6 +96,7 @@ baru, tanpa perlu edit file lain.
 | indentmini | ⚪ Opsional | `indentmini.lua`, nonaktif default — alternatif indent-blankline |
 | codecompanion.nvim (Ollama) | ✅ Aktif | `codecompanion.lua`, AI chat sidebar + inline edit via Ollama lokal (experience mirip VSCode Copilot Chat) |
 | toggleterm.nvim | ✅ Aktif | `terminal.lua`, terminal terintegrasi dengan toggle shortcut mirip VSCode (`Ctrl+\``) |
+| nvim-cmp | ✅ Aktif | `completion.lua`, autocomplete engine untuk LSP, buffer, path, dan perintah AI chat |
 
 Yang ditandai "Opsional" sengaja dibuat sebagai alternatif berdampingan (bukan
 dijalankan bersamaan), karena fungsinya tumpang tindih dengan plugin lain yang sudah
@@ -202,10 +204,12 @@ Tombol **Leader** pada konfigurasi ini diset ke tombol **`Space`** (Spasi).
 | `Esc` | Masuk Normal mode (untuk navigasi atau copy-paste) |
 | `Ctrl + h/j/k/l` | Pindah ke window Neovim lain tanpa keluar terminal |
 
-#### AI Coding Assistant (codecompanion.nvim + Ollama)
+#### AI Coding Assistant (codecompanion.nvim + Ollama & Claude)
 
 > Plugin: [`codecompanion.nvim`](https://github.com/olimorris/codecompanion.nvim) — experience mirip VSCode Copilot Chat.
-> Pastikan Ollama service berjalan (`ollama serve`) sebelum menggunakan fitur AI.
+> **Pilihan Adapter:**
+> - **Ollama**: Jalankan service Ollama lokal (`ollama serve`) sebelum menggunakan.
+> - **Claude (Anthropic)**: Pastikan variabel lingkungan `ANTHROPIC_API_KEY` sudah di-export di terminal/shell Anda (misal: `export ANTHROPIC_API_KEY="your_key_here"`).
 
 **Chat & General (Input Context & Setup)**
 | Shortcut | Mode | Deskripsi |
@@ -213,6 +217,7 @@ Tombol **Leader** pada konfigurasi ini diset ke tombol **`Space`** (Spasi).
 | `Leader + ac` | Normal / Visual | **Toggle chat sidebar** — buka/tutup panel chat AI di sebelah kanan |
 | `Leader + aa` | Normal / Visual | Actions palette — daftar semua aksi AI yang tersedia |
 | `Leader + ai` | Normal / Visual | Inline edit — minta AI tulis/edit langsung di buffer |
+| `Leader + aT` | Normal / Visual | Toggle adapter antara Ollama (Lokal) / Claude (Anthropic) secara instan |
 | `Leader + ab` | Normal / Visual | Tambah buffer file aktif sebagai context ke chat |
 | `Leader + aD` | Normal / Visual | Tambah semua file dalam direktori ke chat (akhiri dengan `!` untuk rekursif) |
 
@@ -234,7 +239,14 @@ Tombol **Leader** pada konfigurasi ini diset ke tombol **`Space`** (Spasi).
 | `Ctrl + c` | Normal | Stop generation AI |
 | `q` | Normal | Tutup / sembunyikan chat sidebar |
 | `ga` | Normal | Ganti model atau adapter |
+| `Tab` / `S-Tab` | Insert | Pilih item pelengkap otomatis (autocomplete) berikutnya / sebelumnya |
 
+> **Autocomplete di Chat Buffer:**
+> Saat berada di dalam chat buffer (mode Insert), Anda mendapatkan pelengkapan otomatis secara real-time:
+> - Ketik **`/`** untuk memicu autocomplete *Slash Commands* (misal: `/buffer`, `/file`).
+> - Ketik **`#`** untuk memicu autocomplete variabel/konteks (misal: `#buffer`, `#clipboard`).
+> - Ketik **`@`** untuk memicu autocomplete *Tools* bantu.
+>
 > **Tips:** Gunakan `@buffer` atau `@files` di dalam chat untuk menyertakan konteks kode.
 > - Shortcut aksi koding dapat ditekan di **Normal Mode** (untuk memproses satu file penuh) atau **Visual Mode** (untuk memproses bagian kode yang di-blok saja).
 > - Shortcut `Leader + af`, `Leader + ad`, dan `Leader + ao` langsung mengganti kode asal secara inline (*replace*). Shortcut lainnya menampilkan response di chat sidebar.

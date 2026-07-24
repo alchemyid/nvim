@@ -41,12 +41,19 @@ return {
                     },
                 })
             end,
+            anthropic = function()
+                return require("codecompanion.adapters").extend("anthropic", {
+                    env = {
+                        api_key = "ANTHROPIC_API_KEY",
+                    },
+                })
+            end,
         },
 
         -- ─── Strategi per mode ───────────────────────────────────────────
         strategies = {
             chat = {
-                adapter = "ollama",
+                adapter = "ollama", -- Ganti ke "anthropic" jika ingin menggunakan Claude
                 -- Keymaps di dalam chat buffer
                 keymaps = {
                     send = {
@@ -64,10 +71,10 @@ return {
                 },
             },
             inline = {
-                adapter = "ollama",
+                adapter = "ollama", -- Ganti ke "anthropic" jika ingin menggunakan Claude
             },
             cmd = {
-                adapter = "ollama",
+                adapter = "ollama", -- Ganti ke "anthropic" jika ingin menggunakan Claude
             },
         },
 
@@ -299,6 +306,24 @@ return {
         { "<leader>aa", "<cmd>CodeCompanionActions<CR>",      mode = { "n", "v" }, desc = "AI: Actions palette" },
         -- Inline edit di buffer
         { "<leader>ai", "<cmd>CodeCompanion<CR>",             mode = { "n", "v" }, desc = "AI: Inline edit" },
+        -- Toggle adapter antara Ollama dan Claude (Anthropic)
+        {
+            "<leader>aT",
+            function()
+                local config = require("codecompanion.config")
+                local current = config.interactions.chat.adapter
+                local target = (current == "ollama") and "anthropic" or "ollama"
+
+                config.interactions.chat.adapter = target
+                config.interactions.inline.adapter = target
+                config.interactions.cmd.adapter = target
+
+                local name = (target == "ollama") and "Ollama (Qwen)" or "Claude (Anthropic)"
+                vim.notify("AI Adapter switched to: " .. name, vim.log.levels.INFO, { title = "CodeCompanion" })
+            end,
+            mode = { "n", "v" },
+            desc = "AI: Toggle Ollama / Claude",
+        },
         -- Shortcut koding (Normal & Visual mode)
         { "<leader>ar", function() require("codecompanion").prompt("review") end,   mode = { "n", "v" }, desc = "AI: Review code" },
         { "<leader>af", function() require("codecompanion").prompt("fix") end,      mode = { "n", "v" }, desc = "AI: Fix bugs" },

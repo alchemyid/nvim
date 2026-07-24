@@ -28,6 +28,10 @@ return {
       })
 
       local capabilities = vim.lsp.protocol.make_client_capabilities()
+      local ok, cmp_lsp = pcall(require, "cmp_nvim_lsp")
+      if ok then
+        capabilities = vim.tbl_deep_extend("force", capabilities, cmp_lsp.default_capabilities())
+      end
 
       vim.lsp.config("lua_ls", {
         capabilities = capabilities,
