@@ -21,6 +21,20 @@
 --   ga               → Accept inline diff edit
 --   gr               → Reject inline diff edit
 
+-- Instruksi tambahan yang di-append ke system prompt setiap prompt library
+-- ber-strategy "inline" (Fix Code, Add Documentation, Refactor Code).
+-- NOTE: codecompanion TIDAK punya `interactions.inline.opts.system_prompt`
+-- global (sudah dicek ke dokumentasi resmi, key itu tidak ada) — jadi ini
+-- satu-satunya cara resmi menyuntikkan instruksi tambahan untuk inline edit,
+-- yaitu per-prompt lewat prompt_library. `<leader>ai` polos (:CodeCompanion
+-- tanpa alias) TIDAK ikut kena rules ini karena tidak lewat prompt_library.
+local INLINE_RULES = [[
+
+Instruksi tambahan:
+1. Perhatikan nomor baris bisa bergeser setelah tiap edit pada multi-edit di satu file.
+2. Jika tidak yakin soal API/library/parameter, katakan eksplisit — jangan mengarang.
+3. Jika instruksi ambigu, ambil satu asumsi wajar, sebutkan singkat, lalu lanjutkan.]]
+
 return {
     "olimorris/codecompanion.nvim",
     -- NOTE resmi dari maintainer: "To avoid breaking changes, it is
@@ -47,7 +61,7 @@ return {
                         schema = {
                             model = {
                                 -- Menggunakan model 7B agar 100% offload ke GPU 8GB (kinerja kilat)
-                                default = "qwen2.5-coder:14b",
+                                default = "qwen2.5-coder:7b",
                             },
                             num_ctx = {
                                 -- Diturunkan ke 8192 agar tidak memakan sisa VRAM berlebih
@@ -70,6 +84,25 @@ return {
         interactions = {
             chat = {
                 adapter = "ollama", -- Ganti ke "anthropic" jika ingin menggunakan Claude
+
+                -- System prompt untuk chat buffer & agentic tool-calling (@editor dll).
+                -- Ini yang benar-benar dibaca plugin (bukan sejajar dengan `chat`,
+                -- tapi nested di dalamnya) — lihat interactions.chat.opts.system_prompt
+                -- di dokumentasi resmi.
+                opts = {
+                    system_prompt = function(ctx)
+                        return ctx.default_system_prompt .. [[
+
+Instruksi tambahan:
+1. Untuk task yang menyentuh >1 file/fungsi, buat rencana singkat sebelum eksekusi.
+2. Perhatikan nomor baris bisa bergeser setelah tiap edit pada multi-edit di satu file.
+3. Jika tidak yakin soal API/library/parameter, katakan eksplisit — jangan mengarang.
+4. Jika instruksi ambigu, ambil satu asumsi wajar, sebutkan singkat, lalu lanjutkan.
+5. Setelah selesai, berhenti — jangan mengulang rekap dengan kalimat berbeda.
+]]
+                    end,
+                },
+
                 -- Keymaps di dalam chat buffer (send/close/stop) TETAP di sini,
                 -- tidak ikut pindah ke `shared` — hanya keymap accept/reject
                 -- diff yang pindah ke interactions.shared.keymaps di bawah.
@@ -195,7 +228,7 @@ return {
                 prompts = {
                     {
                         role = "system",
-                        content = "Kamu adalah expert programmer. Perbaiki bug dalam kode yang diberikan. Output HANYA kode yang sudah diperbaiki, tanpa penjelasan tambahan.",
+                        content = "Kamu adalah expert programmer. Perbaiki bug dalam kode yang diberikan. Output HANYA kode yang sudah diperbaiki, tanpa penjelasan tambahan." .. INLINE_RULES,
                     },
                     {
                         role = "user",
@@ -239,7 +272,7 @@ return {
                 prompts = {
                     {
                         role = "system",
-                        content = "Tambahkan komentar dan dokumentasi yang jelas ke kode. Jaga kode asli tetap utuh, hanya tambahkan komentar. Output HANYA kode dengan komentar.",
+                        content = "Tambahkan komentar dan dokumentasi yang jelas ke kode. Jaga kode asli tetap utuh, hanya tambahkan komentar. Output HANYA kode dengan komentar." .. INLINE_RULES,
                     },
                     {
                         role = "user",
@@ -283,7 +316,7 @@ return {
                 prompts = {
                     {
                         role = "system",
-                        content = "Refactor kode untuk keterbacaan, performa, dan maintainability yang lebih baik. Output HANYA kode yang sudah direfactor.",
+                        content = "Refactor kode untuk keterbacaan, performa, dan maintainability yang lebih baik. Output HANYA kode yang sudah direfactor." .. INLINE_RULES,
                     },
                     {
                         role = "user",
