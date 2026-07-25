@@ -234,8 +234,8 @@ Tombol **Leader** pada konfigurasi ini diset ke tombol **`Space`** (Spasi).
 
 > Plugin: [`codecompanion.nvim`](https://github.com/olimorris/codecompanion.nvim) — experience mirip VSCode Copilot Chat.
 > **Pilihan Adapter:**
-> - **Ollama**: Menggunakan model `qwen2.5-coder:7b` lokal (`http://192.168.0.100:11434` / `ollama serve`). Dilengkapi penanganan otomatis `format = "json"` pada Inline Edit agar 100% valid JSON tanpa error parser.
-> - **Claude (Anthropic)**: Pastikan variabel lingkungan `ANTHROPIC_API_KEY` sudah di-export di terminal/shell Anda.
+> - **Claude 3.7 (Anthropic) [DEFAULT]**: Model utama dengan kemampuan penalaran & agentic tool calling terbaik. Pastikan `export ANTHROPIC_API_KEY="sk-ant-..."` telah dieksekusi di shell Anda.
+> - **Ollama (Lokal)**: Model `qwen2.5-coder:7b` lokal (`http://192.168.0.100:11434`). Tekan `<leader>aT` untuk beralih instan dari Claude ke Ollama.
 
 **Chat & General (Input Context & Setup)**
 | Shortcut | Mode | Deskripsi |

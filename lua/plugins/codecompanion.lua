@@ -1,33 +1,15 @@
 -- lua/plugins/codecompanion.lua
--- AI Chat & Inline Edit berbasis Ollama, experience mirip VSCode Copilot Chat.
+-- AI Assistant di Neovim berbasis Claude (Anthropic) & Ollama (Lokal).
+-- Menggunakan skema `interactions` (v19+).
 --
--- MIGRATED: skema `strategies` (lama) -> `interactions` (v19+, commit cedbead8 / 2026-07-24).
--- Requirement: Neovim >= 0.11.0 untuk versi ini (naik dari 0.9 di versi lama).
--- Cek dengan: nvim --version
---
--- Fitur utama:
---   <leader>ac  → Toggle chat sidebar (persistent, no "press Enter" spam)
---   <leader>aa  → Actions palette (list semua aksi AI)
---   <leader>ai  → Inline edit langsung di buffer
---   <leader>ab  → Kirim buffer file aktif ke chat sebagai context
---   <leader>aD  → Kirim semua file dalam directory ke chat (tambah ! untuk rekursif)
---   <leader>ag  → Kirim laporan Graphify (GRAPH_REPORT.md) ke chat sebagai context
---   <leader>ar/af/ae/ad/at/ao → Shortcut aksi koding (normal & visual mode)
---
--- Di dalam chat buffer:
---   <C-s>  (insert)  → Kirim pesan
---   <CR>   (normal)  → Kirim pesan
---   q                → Hide/close chat
---   ga               → Accept inline diff edit
---   gr               → Reject inline diff edit
+-- Experience mirip VSCode Copilot Chat / Antigravity / Cursor:
+-- 1. Chat Sidebar (`<leader>ac`): Chat AI interaktif dengan kemampuan Agentic Tools (@editor, @files).
+-- 2. Inline Edit (`<leader>ai`): Minta AI membuat / mengedit / refactor kode langsung di buffer.
+-- 3. Approvals (`ga` / `gr`):
+---   - Tekan `ga` (Accept) di Normal mode untuk MENYETUJUI & menerapkan hasil edit langsung ke kode Anda.
+---   - Tekan `gr` (Reject) untuk MENOLAK saran edit.
+-- 4. Fast Toggle Adapter (`<leader>aT`): Beralih secara instan antara Claude 3.7 (Cloud) dan Qwen 7B (Lokal).
 
--- Instruksi tambahan yang di-append ke system prompt setiap prompt library
--- ber-strategy "inline" (Fix Code, Add Documentation, Refactor Code).
--- NOTE: codecompanion TIDAK punya `interactions.inline.opts.system_prompt`
--- global (sudah dicek ke dokumentasi resmi, key itu tidak ada) — jadi ini
--- satu-satunya cara resmi menyuntikkan instruksi tambahan untuk inline edit,
--- yaitu per-prompt lewat prompt_library. `<leader>ai` polos (:CodeCompanion
--- tanpa alias) TIDAK ikut kena rules ini karena tidak lewat prompt_library.
 local INLINE_RULES = [[
 
 Instruksi tambahan:
@@ -37,21 +19,28 @@ Instruksi tambahan:
 
 return {
     "olimorris/codecompanion.nvim",
-    -- NOTE resmi dari maintainer: "To avoid breaking changes, it is
-    -- recommended to pin the plugin to a specific release." Kalau tidak
-    -- di-pin, config ini bisa lagi-lagi rusak diam-diam di rename API
-    -- berikutnya. Uncomment baris di bawah untuk pin ke versi ini:
-    -- version = "^19.0.0",
     dependencies = {
         "nvim-lua/plenary.nvim",
-        "nvim-treesitter/nvim-treesitter",           -- diperlukan untuk render Markdown di chat buffer
-        "ravitemer/codecompanion-history.nvim",      -- history: save, browse & restore chat sessions
+        "nvim-treesitter/nvim-treesitter",           -- Render Markdown di chat buffer
+        "ravitemer/codecompanion-history.nvim",      -- Chat History: save, browse & restore session
     },
     opts = {
-        -- ─── Adapter: Ollama lokal ───────────────────────────────────────
-        -- (struktur adapters.http TIDAK berubah di rename strategies->interactions)
+        -- ─── Configuration Adapters (HTTP) ──────────────────────────────
         adapters = {
             http = {
+                anthropic = function()
+                    return require("codecompanion.adapters").extend("anthropic", {
+                        name = "anthropic",
+                        env = {
+                            api_key = "ANTHROPIC_API_KEY",
+                        },
+                        schema = {
+                            model = {
+                                default = "claude-3-7-sonnet-20250219",
+                            },
+                        },
+                    })
+                end,
                 ollama = function()
                     return require("codecompanion.adapters").extend("ollama", {
                         name = "ollama",
@@ -60,11 +49,9 @@ return {
                         },
                         schema = {
                             model = {
-                                -- Menggunakan model 7B agar 100% offload ke GPU 8GB (kinerja kilat)
                                 default = "qwen2.5-coder:7b",
                             },
                             num_ctx = {
-                                -- Diturunkan ke 8192 agar tidak memakan sisa VRAM berlebih
                                 default = 8192,
                             },
                         },
@@ -84,42 +71,29 @@ return {
                         },
                     })
                 end,
-                anthropic = function()
-                    return require("codecompanion.adapters").extend("anthropic", {
-                        env = {
-                            api_key = "ANTHROPIC_API_KEY",
-                        },
-                    })
-                end,
             },
         },
 
-        -- ─── Interactions per mode (dulu bernama `strategies`) ────────────
+        -- ─── Interactions Configuration ──────────────────────────────────
         interactions = {
             chat = {
-                adapter = "ollama", -- Ganti ke "anthropic" jika ingin menggunakan Claude
+                adapter = "anthropic", -- Default: Claude (Anthropic)
 
-                -- System prompt untuk chat buffer & agentic tool-calling (@editor dll).
-                -- Ini yang benar-benar dibaca plugin (bukan sejajar dengan `chat`,
-                -- tapi nested di dalamnya) — lihat interactions.chat.opts.system_prompt
-                -- di dokumentasi resmi.
                 opts = {
                     system_prompt = function(ctx)
                         return ctx.default_system_prompt .. [[
 
 Instruksi tambahan:
-1. Untuk task yang menyentuh >1 file/fungsi, buat rencana singkat sebelum eksekusi.
-2. Perhatikan nomor baris bisa bergeser setelah tiap edit pada multi-edit di satu file.
-3. Jika tidak yakin soal API/library/parameter, katakan eksplisit — jangan mengarang.
-4. Jika instruksi ambigu, ambil satu asumsi wajar, sebutkan singkat, lalu lanjutkan.
-5. Setelah selesai, berhenti — jangan mengulang rekap dengan kalimat berbeda.
+1. Kamu adalah AI Agentic Assistant tingkat lanjut. Kamu dapat membaca file, mengedit kode, dan mencari arsitektur project.
+2. Untuk task yang menyentuh >1 file/fungsi, buat rencana singkat sebelum eksekusi.
+3. Perhatikan nomor baris bisa bergeser setelah tiap edit pada multi-edit di satu file.
+4. Jika tidak yakin soal API/library/parameter, katakan eksplisit — jangan mengarang.
+5. Jika instruksi ambigu, ambil satu asumsi wajar, sebutkan singkat, lalu lanjutkan.
+6. Setelah selesai, berhenti — jangan mengulang rekap dengan kalimat berbeda.
 ]]
                     end,
                 },
 
-                -- Keymaps di dalam chat buffer (send/close/stop) TETAP di sini,
-                -- tidak ikut pindah ke `shared` — hanya keymap accept/reject
-                -- diff yang pindah ke interactions.shared.keymaps di bawah.
                 keymaps = {
                     send = {
                         modes = { n = "<CR>", i = "<C-s>" },
@@ -135,34 +109,34 @@ Instruksi tambahan:
                     },
                 },
             },
+
             inline = {
-                adapter = "ollama",
+                adapter = "anthropic", -- Default: Claude (Anthropic)
             },
+
             cmd = {
-                adapter = "ollama",
+                adapter = "anthropic", -- Default: Claude (Anthropic)
             },
-            -- Accept/reject keymap untuk diff hasil edit (inline & agentic tools).
-            -- Sebelumnya default lama adalah ga/gr untuk inline — dipertahankan
-            -- eksplisit di sini supaya tidak berubah walau ada rename lanjutan.
+
+            -- Keymap global untuk Approve (`ga`) / Reject (`gr`) hasil edit diff
             shared = {
                 keymaps = {
                     accept_change = {
                         callback = "keymaps.accept_change",
                         modes = { n = "ga" },
-                        description = "Accept the suggested change",
+                        description = "Accept the suggested change (Setujui & terapkan ke buffer)",
                     },
                     reject_change = {
                         callback = "keymaps.reject_change",
                         modes = { n = "gr" },
                         opts = { nowait = true },
-                        description = "Reject the suggested change",
+                        description = "Reject the suggested change (Tolak edit)",
                     },
                 },
             },
         },
 
-        -- ─── Chat History (auto-save & restore) ──────────────────────────
-        -- (tidak terdampak rename strategies->interactions)
+        -- ─── Chat History ────────────────────────────────────────────────
         extensions = {
             history = {
                 enabled = true,
@@ -187,7 +161,7 @@ Instruksi tambahan:
             },
         },
 
-        -- ─── Tampilan Chat Window ────────────────────────────────────────
+        -- ─── Display Window Config ──────────────────────────────────────
         display = {
             chat = {
                 window = {
@@ -213,7 +187,7 @@ Instruksi tambahan:
             },
         },
 
-        -- ─── Prompt Library (shortcut koding) ───────────────────────────
+        -- ─── Prompt Library (Shortcut Koding) ───────────────────────────
         prompt_library = {
             ["Review Code"] = {
                 strategy = "chat",
@@ -349,31 +323,31 @@ Instruksi tambahan:
             },
         },
     },
+
     keys = {
         { "<leader>ac", "<cmd>CodeCompanionChat Toggle<CR>",  mode = { "n", "v" }, desc = "AI: Toggle chat sidebar" },
         { "<leader>aa", "<cmd>CodeCompanionActions<CR>",      mode = { "n", "v" }, desc = "AI: Actions palette" },
         { "<leader>ai", "<cmd>CodeCompanion<CR>",             mode = { "n", "v" }, desc = "AI: Inline edit" },
+
+        -- Toggle Adapter Instan antara Claude (Anthropic) & Ollama (Lokal)
         {
             "<leader>aT",
             function()
-                -- Ini SEKARANG konsisten dengan opts.interactions di atas
-                -- (sebelumnya file ini baca/tulis config.interactions padahal
-                -- setup()-nya masih pakai key `strategies` -> toggle tidak
-                -- benar-benar mengubah adapter aktif).
                 local config = require("codecompanion.config")
                 local current = config.interactions.chat.adapter
-                local target = (current == "ollama") and "anthropic" or "ollama"
+                local target = (current == "anthropic") and "ollama" or "anthropic"
 
                 config.interactions.chat.adapter = target
                 config.interactions.inline.adapter = target
                 config.interactions.cmd.adapter = target
 
-                local name = (target == "ollama") and "Ollama (Qwen)" or "Claude (Anthropic)"
+                local name = (target == "anthropic") and "Claude 3.7 (Anthropic)" or "Ollama 7B (Lokal)"
                 vim.notify("AI Adapter switched to: " .. name, vim.log.levels.INFO, { title = "CodeCompanion" })
             end,
             mode = { "n", "v" },
-            desc = "AI: Toggle Ollama / Claude",
+            desc = "AI: Toggle Claude / Ollama",
         },
+
         { "<leader>ar", function() require("codecompanion").prompt("review") end,   mode = { "n", "v" }, desc = "AI: Review code" },
         { "<leader>af", function() require("codecompanion").prompt("fix") end,      mode = { "n", "v" }, desc = "AI: Fix bugs" },
         { "<leader>ae", function() require("codecompanion").prompt("explain") end,  mode = { "n", "v" }, desc = "AI: Explain code" },
