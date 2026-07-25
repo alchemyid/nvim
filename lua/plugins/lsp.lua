@@ -50,6 +50,14 @@ return {
       vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, { desc = "Code action" })
       vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, { desc = "Prev diagnostic" })
       vim.keymap.set("n", "]d", vim.diagnostic.goto_next, { desc = "Next diagnostic" })
+      vim.keymap.set("n", "<C-LeftMouse>", function ()
+        local mouse = vim.fn.getmousepos()
+        if mouse.winid ~= 0 then
+          vim.api.nvim_set_current_win(mouse.winid)
+          vim.api.nvim_win_set_cursor(mouse.winid, { mouse.line, mouse.column - 1 })
+          vim.lsp.buf.definition()
+        end
+      end, { desc = "Go to definition (Ctrl+Click)"})
     end,
   },
 }
