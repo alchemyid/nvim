@@ -61,7 +61,7 @@ return {
                         schema = {
                             model = {
                                 -- Menggunakan model 7B agar 100% offload ke GPU 8GB (kinerja kilat)
-                                default = "qwen2.5-coder:7b",
+                                default = "qwen2.5-coder:14b",
                             },
                             num_ctx = {
                                 -- Diturunkan ke 8192 agar tidak memakan sisa VRAM berlebih
