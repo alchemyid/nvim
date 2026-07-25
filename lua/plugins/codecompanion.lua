@@ -1,6 +1,10 @@
 -- lua/plugins/codecompanion.lua
 -- AI Chat & Inline Edit berbasis Ollama, experience mirip VSCode Copilot Chat.
 --
+-- MIGRATED: skema `strategies` (lama) -> `interactions` (v19+, commit cedbead8 / 2026-07-24).
+-- Requirement: Neovim >= 0.11.0 untuk versi ini (naik dari 0.9 di versi lama).
+-- Cek dengan: nvim --version
+--
 -- Fitur utama:
 --   <leader>ac  → Toggle chat sidebar (persistent, no "press Enter" spam)
 --   <leader>aa  → Actions palette (list semua aksi AI)
@@ -14,10 +18,16 @@
 --   <C-s>  (insert)  → Kirim pesan
 --   <CR>   (normal)  → Kirim pesan
 --   q                → Hide/close chat
---   ga               → Ganti model / adapter
+--   ga               → Accept inline diff edit
+--   gr               → Reject inline diff edit
 
 return {
     "olimorris/codecompanion.nvim",
+    -- NOTE resmi dari maintainer: "To avoid breaking changes, it is
+    -- recommended to pin the plugin to a specific release." Kalau tidak
+    -- di-pin, config ini bisa lagi-lagi rusak diam-diam di rename API
+    -- berikutnya. Uncomment baris di bawah untuk pin ke versi ini:
+    -- version = "^19.0.0",
     dependencies = {
         "nvim-lua/plenary.nvim",
         "nvim-treesitter/nvim-treesitter",           -- diperlukan untuk render Markdown di chat buffer
@@ -25,6 +35,7 @@ return {
     },
     opts = {
         -- ─── Adapter: Ollama lokal ───────────────────────────────────────
+        -- (struktur adapters.http TIDAK berubah di rename strategies->interactions)
         adapters = {
             http = {
                 ollama = function()
@@ -36,7 +47,7 @@ return {
                         schema = {
                             model = {
                                 -- Menggunakan model 7B agar 100% offload ke GPU 8GB (kinerja kilat)
-                                default = "qwen2.5-coder:7b",
+                                default = "qwen2.5-coder:14b",
                             },
                             num_ctx = {
                                 -- Diturunkan ke 8192 agar tidak memakan sisa VRAM berlebih
@@ -55,11 +66,13 @@ return {
             },
         },
 
-        -- ─── Strategi per mode ───────────────────────────────────────────
-        strategies = {
+        -- ─── Interactions per mode (dulu bernama `strategies`) ────────────
+        interactions = {
             chat = {
                 adapter = "ollama", -- Ganti ke "anthropic" jika ingin menggunakan Claude
-                -- Keymaps di dalam chat buffer
+                -- Keymaps di dalam chat buffer (send/close/stop) TETAP di sini,
+                -- tidak ikut pindah ke `shared` — hanya keymap accept/reject
+                -- diff yang pindah ke interactions.shared.keymaps di bawah.
                 keymaps = {
                     send = {
                         modes = { n = "<CR>", i = "<C-s>" },
@@ -76,14 +89,33 @@ return {
                 },
             },
             inline = {
-                adapter = "ollama", 
+                adapter = "ollama",
             },
             cmd = {
-                adapter = "ollama", 
+                adapter = "ollama",
+            },
+            -- Accept/reject keymap untuk diff hasil edit (inline & agentic tools).
+            -- Sebelumnya default lama adalah ga/gr untuk inline — dipertahankan
+            -- eksplisit di sini supaya tidak berubah walau ada rename lanjutan.
+            shared = {
+                keymaps = {
+                    accept_change = {
+                        callback = "keymaps.accept_change",
+                        modes = { n = "ga" },
+                        description = "Accept the suggested change",
+                    },
+                    reject_change = {
+                        callback = "keymaps.reject_change",
+                        modes = { n = "gr" },
+                        opts = { nowait = true },
+                        description = "Reject the suggested change",
+                    },
+                },
             },
         },
 
         -- ─── Chat History (auto-save & restore) ──────────────────────────
+        -- (tidak terdampak rename strategies->interactions)
         extensions = {
             history = {
                 enabled = true,
@@ -277,6 +309,10 @@ return {
         {
             "<leader>aT",
             function()
+                -- Ini SEKARANG konsisten dengan opts.interactions di atas
+                -- (sebelumnya file ini baca/tulis config.interactions padahal
+                -- setup()-nya masih pakai key `strategies` -> toggle tidak
+                -- benar-benar mengubah adapter aktif).
                 local config = require("codecompanion.config")
                 local current = config.interactions.chat.adapter
                 local target = (current == "ollama") and "anthropic" or "ollama"
@@ -297,7 +333,7 @@ return {
         { "<leader>ad", function() require("codecompanion").prompt("docs") end,     mode = { "n", "v" }, desc = "AI: Add documentation" },
         { "<leader>at", function() require("codecompanion").prompt("tests") end,    mode = { "n", "v" }, desc = "AI: Generate tests" },
         { "<leader>ao", function() require("codecompanion").prompt("refactor") end, mode = { "n", "v" }, desc = "AI: Refactor code" },
-        
+
         -- Tambah file code ke chat sebagai context
         {
             "<leader>ab",
@@ -460,7 +496,7 @@ return {
             desc = "AI: Add directory files to chat",
         },
 
-        -- ─── INJEKSI GRAPHIFY KE CHAT (BARU) ─────────────────────────────
+        -- ─── INJEKSI GRAPHIFY KE CHAT ─────────────────────────────
         {
             "<leader>ag",
             function()
@@ -503,7 +539,7 @@ return {
                     "Saya melampirkan laporan arsitektur codebase ini. Tolong jadikan sebagai referensi utama untuk memahami relasi antar modul sebelum saya memberikan instruksi selanjutnya.",
                     ""
                 }
-                
+
                 vim.list_extend(code_lines, lines)
                 vim.list_extend(code_lines, { "", "---", "" })
 
