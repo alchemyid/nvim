@@ -61,12 +61,26 @@ return {
                         schema = {
                             model = {
                                 -- Menggunakan model 7B agar 100% offload ke GPU 8GB (kinerja kilat)
-                                default = "qwen2.5-coder:14b",
+                                default = "qwen2.5-coder:7b",
                             },
                             num_ctx = {
                                 -- Diturunkan ke 8192 agar tidak memakan sisa VRAM berlebih
                                 default = 8192,
                             },
+                        },
+                        handlers = {
+                            form_parameters = function(self, params, messages)
+                                params = require("codecompanion.adapters.http.openai").handlers.form_parameters(self, params, messages)
+                                if messages then
+                                    for _, msg in ipairs(messages) do
+                                        if msg.role == "system" and type(msg.content) == "string" and (msg.content:find("JSON") or msg.content:find("placement")) then
+                                            params.format = "json"
+                                            break
+                                        end
+                                    end
+                                end
+                                return params
+                            end,
                         },
                     })
                 end,

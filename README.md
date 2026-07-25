@@ -234,8 +234,8 @@ Tombol **Leader** pada konfigurasi ini diset ke tombol **`Space`** (Spasi).
 
 > Plugin: [`codecompanion.nvim`](https://github.com/olimorris/codecompanion.nvim) — experience mirip VSCode Copilot Chat.
 > **Pilihan Adapter:**
-> - **Ollama**: Jalankan service Ollama lokal (`ollama serve`) sebelum menggunakan.
-> - **Claude (Anthropic)**: Pastikan variabel lingkungan `ANTHROPIC_API_KEY` sudah di-export di terminal/shell Anda (misal: `export ANTHROPIC_API_KEY="your_key_here"`).
+> - **Ollama**: Menggunakan model `qwen2.5-coder:7b` lokal (`http://192.168.0.100:11434` / `ollama serve`). Dilengkapi penanganan otomatis `format = "json"` pada Inline Edit agar 100% valid JSON tanpa error parser.
+> - **Claude (Anthropic)**: Pastikan variabel lingkungan `ANTHROPIC_API_KEY` sudah di-export di terminal/shell Anda.
 
 **Chat & General (Input Context & Setup)**
 | Shortcut | Mode | Deskripsi |
@@ -246,6 +246,7 @@ Tombol **Leader** pada konfigurasi ini diset ke tombol **`Space`** (Spasi).
 | `Leader + aT` | Normal / Visual | Toggle adapter antara Ollama (Lokal) / Claude (Anthropic) secara instan |
 | `Leader + ab` | Normal / Visual | Tambah buffer file aktif sebagai context ke chat |
 | `Leader + aD` | Normal / Visual | Tambah semua file dalam direktori ke chat (akhiri dengan `!` untuk rekursif) |
+| `Leader + ag` | Normal / Visual | Tambah laporan arsitektur Graphify (`GRAPH_REPORT.md`) ke chat |
 
 **Shortcut Aksi Koding (Bekerja pada seluruh file aktif atau kode terseleksi)**
 | Shortcut | Mode | Deskripsi |
@@ -257,6 +258,12 @@ Tombol **Leader** pada konfigurasi ini diset ke tombol **`Space`** (Spasi).
 | `Leader + at` | Normal / Visual | Generate tests — buat unit test untuk kode (tampil di chat) |
 | `Leader + ao` | Normal / Visual | Refactor code — optimasi readability & performa (langsung replace) |
 
+**Menerapkan / Menolak Hasil Edit Inline (Diff View)**
+| Shortcut | Mode | Deskripsi |
+|---|---|---|
+| `ga` | Normal | **Accept change** — Setujui dan terapkan langsung hasil edit ke buffer kode Anda |
+| `gr` | Normal | **Reject change** — Batalkan dan tolak saran edit inline |
+
 **Shortcut di dalam Chat Buffer**
 | Shortcut | Mode | Deskripsi |
 |---|---|---|
@@ -264,7 +271,6 @@ Tombol **Leader** pada konfigurasi ini diset ke tombol **`Space`** (Spasi).
 | `Enter` | Normal | Kirim pesan ke AI |
 | `Ctrl + c` | Normal | Stop generation AI |
 | `q` | Normal | Tutup / sembunyikan chat sidebar |
-| `ga` | Normal | Ganti model atau adapter |
 | `Tab` / `S-Tab` | Insert | Pilih item pelengkap otomatis (autocomplete) berikutnya / sebelumnya |
 
 > **Autocomplete di Chat Buffer:**
@@ -273,9 +279,9 @@ Tombol **Leader** pada konfigurasi ini diset ke tombol **`Space`** (Spasi).
 > - Ketik **`#`** untuk memicu autocomplete variabel/konteks (misal: `#buffer`, `#clipboard`).
 > - Ketik **`@`** untuk memicu autocomplete *Tools* bantu.
 >
-> **Tips:** Gunakan `@buffer` atau `@files` di dalam chat untuk menyertakan konteks kode.
-> - Shortcut aksi koding dapat ditekan di **Normal Mode** (untuk memproses satu file penuh) atau **Visual Mode** (untuk memproses bagian kode yang di-blok saja).
-> - Shortcut `Leader + af`, `Leader + ad`, dan `Leader + ao` langsung mengganti kode asal secara inline (*replace*). Shortcut lainnya menampilkan response di chat sidebar.
+> **Tips Inline Edit:**
+> - Tekan `<leader>ai` (atau shortcut `<leader>af`, `<leader>ad`, `<leader>ao`) di Normal/Visual mode.
+> - Setelah AI selesai membuat perbaikan, tekan **`ga`** untuk langsung mengaplikasikannya ke berkas kode Anda.
 
 ---
 
