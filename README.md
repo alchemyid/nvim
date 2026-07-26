@@ -60,6 +60,7 @@ Graphify berfungsi untuk mengekstrak seluruh arsitektur proyek (_codebase_) menj
    - **C. Menggunakan Ollama (Lokal)**:
      ```bash
      export OLLAMA_BASE_URL="http://192.168.0.100:11434/v1"
+     export OLLAMA_API_KEY="ollama"
      graphify extract . --backend ollama
      ```
 
