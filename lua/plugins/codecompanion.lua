@@ -1,5 +1,5 @@
 -- lua/plugins/codecompanion.lua
--- AI Assistant di Neovim berbasis Claude (Anthropic) & Ollama (Lokal).
+-- AI Assistant di Neovim berbasis Claude (Anthropic), GitHub Copilot, & Ollama (Lokal).
 -- Menggunakan skema `interactions` (v19+).
 --
 -- Experience mirip VSCode Copilot Chat / Antigravity / Cursor:
@@ -8,7 +8,7 @@
 -- 3. Approvals (`ga` / `gr`):
 ---   - Tekan `ga` (Accept) di Normal mode untuk MENYETUJUI & menerapkan hasil edit langsung ke kode Anda.
 ---   - Tekan `gr` (Reject) untuk MENOLAK saran edit.
--- 4. Fast Toggle Adapter (`<leader>aT`): Beralih secara instan antara Claude 3.7 (Cloud) dan Qwen 7B (Lokal).
+-- 4. Fast Toggle Adapter (`<leader>aT`): Beralih secara instan antara Claude 3.7 (Cloud), GitHub Copilot, dan Qwen 7B (Lokal).
 
 local INLINE_RULES = [[
 
@@ -37,6 +37,16 @@ return {
                         schema = {
                             model = {
                                 default = "claude-3-7-sonnet-20250219",
+                            },
+                        },
+                    })
+                end,
+                copilot = function()
+                    return require("codecompanion.adapters").extend("copilot", {
+                        name = "copilot",
+                        schema = {
+                            model = {
+                                default = "gpt-4o",
                             },
                         },
                     })
@@ -329,23 +339,103 @@ Instruksi tambahan:
         { "<leader>aa", "<cmd>CodeCompanionActions<CR>",      mode = { "n", "v" }, desc = "AI: Actions palette" },
         { "<leader>ai", "<cmd>CodeCompanion<CR>",             mode = { "n", "v" }, desc = "AI: Inline edit" },
 
-        -- Toggle Adapter Instan antara Claude (Anthropic) & Ollama (Lokal)
+        -- Toggle Adapter Instan antara Claude (Anthropic), Copilot (GitHub), & Ollama (Lokal)
         {
             "<leader>aT",
             function()
                 local config = require("codecompanion.config")
                 local current = config.interactions.chat.adapter
-                local target = (current == "anthropic") and "ollama" or "anthropic"
+
+                local cycle = {
+                    anthropic = { target = "copilot",   name = "GitHub Copilot (Cloud)" },
+                    copilot   = { target = "ollama",    name = "Ollama 7B (Lokal)" },
+                    ollama    = { target = "anthropic", name = "Claude 3.7 (Anthropic)" },
+                }
+
+                local info = cycle[current] or cycle["anthropic"]
+                local target = info.target
+                local name = info.name
 
                 config.interactions.chat.adapter = target
                 config.interactions.inline.adapter = target
                 config.interactions.cmd.adapter = target
 
-                local name = (target == "anthropic") and "Claude 3.7 (Anthropic)" or "Ollama 7B (Lokal)"
                 vim.notify("AI Adapter switched to: " .. name, vim.log.levels.INFO, { title = "CodeCompanion" })
             end,
             mode = { "n", "v" },
-            desc = "AI: Toggle Claude / Ollama",
+            desc = "AI: Toggle Claude / Copilot / Ollama",
+        },
+
+        -- Switch Model Copilot via Menu (<leader>am) atau Toggle (<leader>aM)
+        {
+            "<leader>am",
+            function()
+                local models = {
+                    { id = "gpt-4o",            name = "GPT-4o (OpenAI)" },
+                    { id = "claude-3.5-sonnet", name = "Claude 3.5 Sonnet (Anthropic)" },
+                    { id = "gemini-2.5-pro",    name = "Gemini 2.5 Pro (Google)" },
+                    { id = "gpt-4o-mini",       name = "GPT-4o Mini (Cepat & Ringan)" },
+                    { id = "o3-mini",           name = "o3-mini (Reasoning Model)" },
+                    { id = "auto",              name = "Auto (Default GitHub Copilot)" },
+                }
+
+                vim.ui.select(models, {
+                    prompt = "🤖 Pilih Model Copilot:",
+                    format_item = function(item) return item.name .. " [" .. item.id .. "]" end,
+                }, function(choice)
+                    if not choice then return end
+
+                    local config = require("codecompanion.config")
+                    config.adapters.http.copilot = function()
+                        return require("codecompanion.adapters").extend("copilot", {
+                            name = "copilot",
+                            schema = {
+                                model = {
+                                    default = choice.id,
+                                },
+                            },
+                        })
+                    end
+
+                    vim.notify("Copilot Model set to: " .. choice.name, vim.log.levels.INFO, { title = "CodeCompanion" })
+                end)
+            end,
+            mode = { "n", "v" },
+            desc = "AI: Select Copilot model menu",
+        },
+
+        {
+            "<leader>aM",
+            function()
+                local cycle = {
+                    ["gpt-4o"]            = "claude-3.5-sonnet",
+                    ["claude-3.5-sonnet"] = "gemini-2.5-pro",
+                    ["gemini-2.5-pro"]    = "gpt-4o-mini",
+                    ["gpt-4o-mini"]       = "o3-mini",
+                    ["o3-mini"]           = "auto",
+                    ["auto"]              = "gpt-4o",
+                }
+
+                local config = require("codecompanion.config")
+                local current_adapter = type(config.adapters.http.copilot) == "function" and config.adapters.http.copilot() or config.adapters.http.copilot
+                local current_model = (current_adapter and current_adapter.schema and current_adapter.schema.model and current_adapter.schema.model.default) or "gpt-4o"
+                local next_model = cycle[current_model] or "gpt-4o"
+
+                config.adapters.http.copilot = function()
+                    return require("codecompanion.adapters").extend("copilot", {
+                        name = "copilot",
+                        schema = {
+                            model = {
+                                default = next_model,
+                            },
+                        },
+                    })
+                end
+
+                vim.notify("Copilot Model toggled to: " .. next_model, vim.log.levels.INFO, { title = "CodeCompanion" })
+            end,
+            mode = { "n", "v" },
+            desc = "AI: Cycle Copilot model",
         },
 
         { "<leader>ar", function() require("codecompanion").prompt("review") end,   mode = { "n", "v" }, desc = "AI: Review code" },

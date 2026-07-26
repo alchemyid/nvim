@@ -90,7 +90,8 @@ Anda adalah asisten coding yang presisi dan disiplin. Ikuti aturan berikut secar
         ├── illuminate.lua         -- vim-illuminate
         ├── terminal.lua           -- toggleterm.nvim (terminal terintegrasi, mirip VSCode)
         ├── completion.lua         -- nvim-cmp (autocomplete engine + snippets & AI integration)
-        └── codecompanion.lua      -- codecompanion.nvim (AI chat & inline edit via Ollama)
+        ├── copilot.lua            -- zbirenbaum/copilot.lua (GitHub Copilot ghost text auto-completion)
+        └── codecompanion.lua      -- codecompanion.nvim (AI chat & inline edit via Claude, Copilot, & Ollama)
 ```
 
 Setiap file di `lua/plugins/` adalah satu spec `lazy.nvim` yang otomatis ter-load lewat
@@ -120,7 +121,8 @@ baru, tanpa perlu edit file lain.
 | IndentBlankline | ✅ Aktif | `indent-blankline.lua` |
 | vim-illuminate | ✅ Aktif | `illuminate.lua` |
 | indentmini | ⚪ Opsional | `indentmini.lua`, nonaktif default — alternatif indent-blankline |
-| codecompanion.nvim (Ollama) | ✅ Aktif | `codecompanion.lua`, AI chat sidebar + inline edit via Ollama lokal (experience mirip VSCode Copilot Chat) |
+| codecompanion.nvim | ✅ Aktif | `codecompanion.lua`, AI chat sidebar + inline edit via Claude 3.7, GitHub Copilot, & Ollama lokal |
+| copilot.lua | ✅ Aktif | `copilot.lua`, GitHub Copilot ghost text auto-completion di buffer saat mengetik |
 | toggleterm.nvim | ✅ Aktif | `terminal.lua`, terminal terintegrasi dengan toggle shortcut mirip VSCode (`Ctrl+\``) |
 | nvim-cmp | ✅ Aktif | `completion.lua`, autocomplete engine untuk LSP, buffer, path, dan perintah AI chat |
 
@@ -230,12 +232,16 @@ Tombol **Leader** pada konfigurasi ini diset ke tombol **`Space`** (Spasi).
 | `Esc` | Masuk Normal mode (untuk navigasi atau copy-paste) |
 | `Ctrl + h/j/k/l` | Pindah ke window Neovim lain tanpa keluar terminal |
 
-#### AI Coding Assistant (codecompanion.nvim + Ollama & Claude)
+#### AI Coding Assistant & Autocomplete (codecompanion.nvim + GitHub Copilot & Ollama)
 
-> Plugin: [`codecompanion.nvim`](https://github.com/olimorris/codecompanion.nvim) — experience mirip VSCode Copilot Chat.
-> **Pilihan Adapter:**
+> Plugin: [`codecompanion.nvim`](https://github.com/olimorris/codecompanion.nvim) (Chat & Inline Edit) & [`copilot.lua`](https://github.com/zbirenbaum/copilot.lua) (Ghost Text Autocomplete).
+> **Pilihan Adapter Chat / Inline Edit:**
 > - **Claude 3.7 (Anthropic) [DEFAULT]**: Model utama dengan kemampuan penalaran & agentic tool calling terbaik. Pastikan `export ANTHROPIC_API_KEY="sk-ant-..."` telah dieksekusi di shell Anda.
-> - **Ollama (Lokal)**: Model `qwen2.5-coder:7b` lokal (`http://192.168.0.100:11434`). Tekan `<leader>aT` untuk beralih instan dari Claude ke Ollama.
+> - **GitHub Copilot (Cloud)**: Model `gpt-4o` cloud via API GitHub Copilot.
+> - **Ollama (Lokal)**: Model `qwen2.5-coder:7b` lokal (`http://192.168.0.100:11434`).
+>
+> *Tekan `<leader>aT` untuk beralih instan antar adapter (Claude 3.7 → GitHub Copilot → Ollama 7B).*
+> *Untuk login/autentikasi GitHub Copilot pertama kali, jalankan `:Copilot auth` di Neovim.*
 
 **Chat & General (Input Context & Setup)**
 | Shortcut | Mode | Deskripsi |
@@ -243,10 +249,22 @@ Tombol **Leader** pada konfigurasi ini diset ke tombol **`Space`** (Spasi).
 | `Leader + ac` | Normal / Visual | **Toggle chat sidebar** — buka/tutup panel chat AI di sebelah kanan |
 | `Leader + aa` | Normal / Visual | Actions palette — daftar semua aksi AI yang tersedia |
 | `Leader + ai` | Normal / Visual | Inline edit — minta AI tulis/edit langsung di buffer |
-| `Leader + aT` | Normal / Visual | Toggle adapter antara Ollama (Lokal) / Claude (Anthropic) secara instan |
+| `Leader + aT` | Normal / Visual | Toggle adapter antara Claude (Anthropic) / Copilot (GitHub) / Ollama (Lokal) secara instan |
+| `Leader + am` | Normal / Visual | **Menu Pilih Model Copilot** — tampilkan daftar pilihan model Copilot (`gpt-4o`, `claude-3.5-sonnet`, `gemini-2.5-pro`, dll) |
+| `Leader + aM` | Normal / Visual | **Toggle Model Copilot Instan** — berganti cepat antar model Copilot (`gpt-4o` → `claude-3.5-sonnet` → `gemini-2.5-pro` → `gpt-4o-mini` → `o3-mini` → `auto`) |
 | `Leader + ab` | Normal / Visual | Tambah buffer file aktif sebagai context ke chat |
 | `Leader + aD` | Normal / Visual | Tambah semua file dalam direktori ke chat (akhiri dengan `!` untuk rekursif) |
 | `Leader + ag` | Normal / Visual | Tambah laporan arsitektur Graphify (`GRAPH_REPORT.md`) ke chat |
+
+**GitHub Copilot Ghost Text (copilot.lua — Saran Kode Samar Saat Mengetik)**
+| Shortcut | Mode | Deskripsi |
+|---|---|---|
+| `Alt + l` | Insert | **Accept** seluruh saran kode samar (*ghost text*) |
+| `Alt + w` | Insert | **Accept 1 kata** berikutnya dari saran |
+| `Alt + a` | Insert | **Accept 1 baris** berikutnya dari saran |
+| `Alt + ]` | Insert | Lihat saran alternatif **berikutnya** |
+| `Alt + [` | Insert | Lihat saran alternatif **sebelumnya** |
+| `Ctrl + ]` | Insert | Batalkan/tutup saran samar |
 
 **Shortcut Aksi Koding (Bekerja pada seluruh file aktif atau kode terseleksi)**
 | Shortcut | Mode | Deskripsi |
