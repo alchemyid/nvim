@@ -81,6 +81,80 @@ Anda adalah asisten coding yang presisi dan disiplin. Ikuti aturan berikut secar
 6. Jika instruksi ambigu, buat satu asumsi wajar, sebutkan singkat, lalu lanjutkan — jangan bertanya balik kecuali benar-benar tidak bisa dilanjutkan.
 ````
 
+## Panduan Lengkap Penggunaan AI Coding Assistant (Manual AI)
+
+Bagian ini menjelaskan langkah-langkah praktis untuk menggunakan **[codecompanion.lua](file:///home/x/.config/nvim/lua/plugins/codecompanion.lua)** dalam alur kerja harian Anda.
+
+### 1. Memilih dan Mengganti Model AI (Model Switching)
+Anda memiliki fleksibilitas penuh untuk mengganti model AI (seperti GPT-4o, Claude, Gemini, dll) atau adapter (Copilot Cloud, Claude Cloud, Ollama Lokal). 
+
+*   **Siklus Cepat Adapter (`<leader>aT`)**: 
+    Tekan `<leader>aT` untuk berpindah adapter secara instan: Claude 3.7 Sonnet (Cloud) ➔ GitHub Copilot (Cloud) ➔ Ollama Qwen 7B (Lokal).
+*   **Menu Pemilihan Model Copilot (`<leader>am`)**: 
+    Jika Anda sedang menggunakan adapter `copilot`, tekan `<leader>am` untuk memunculkan menu visual (Telescope / `vim.ui.select`) berisi pilihan model yang tersedia:
+    *   GPT-4o (OpenAI)
+    *   Claude 3.5 Sonnet (Anthropic)
+    *   Gemini 2.5 Pro (Google)
+    *   GPT-4o Mini
+    *   o3-mini (Reasoning)
+*   **Rotasi Model Copilot (`<leader>aM`)**: 
+    Tekan `<leader>aM` untuk berpindah secara sekuensial antar model Copilot tanpa memicu menu pop-up.
+*   **Mengedit Settings Header (YAML)**:
+    Jika Anda mengaktifkan opsi `show_settings = true` di [codecompanion.lua](file:///home/x/.config/nvim/lua/plugins/codecompanion.lua#L187), akan muncul header YAML di baris teratas buffer chat. Anda bisa langsung mengubah model atau opsi konfigurasi secara manual pada teks tersebut sebelum mengirim pesan.
+
+---
+
+### 2. Cara Mengirim Konteks Kode ke AI
+Agar AI memberikan saran yang akurat, Anda harus mengirimkan file atau potongan kode yang relevan sebagai konteks.
+
+#### A. Mengirim Satu File Penuh
+*   **Melalui Chat Sidebar:**
+    1. Buka file yang ingin ditanyakan.
+    2. Tekan **`<leader>ab`** (*Add Buffer to Chat*). Jendela chat sidebar akan otomatis terbuka dan seluruh isi file tersebut dimasukkan sebagai konteks.
+    3. Ketik instruksi Anda (misal: *"Tolong optimasikan fungsi utama di file ini"*).
+*   **Melalui Variabel Autocomplete (`#{buffer}`)**:
+    Di dalam jendela chat buffer, ketik tombol **`#`** untuk memicu dropdown autocomplete. Pilih **`#{buffer}`** untuk melampirkan buffer aktif saat ini sebagai konteks chat. *(Catatan: Pastikan menulis dengan huruf 'f' ganda: `buffer`, bukan `bufer`)*.
+
+#### B. Mengirim Baris Kode Spesifik (Visual Selection)
+*   **Melalui Chat Sidebar:**
+    1. Buka file, masuk ke Visual Mode (`v` atau `V`), lalu pilih baris-baris kode yang ingin dianalisis.
+    2. Tekan **`<leader>ac`** (*Toggle Chat Sidebar*). AI chat akan terbuka di sebelah kanan dan baris kode pilihan Anda otomatis terlampir di sana.
+    3. Ketik pertanyaan atau permintaan Anda di bawahnya.
+*   **Melalui Inline Edit:**
+    1. Seleksi baris kode secara visual.
+    2. Tekan **`<leader>ai`** (*Inline Edit*).
+    3. Ketik instruksi Anda secara spesifik di baris input prompt (misal: *"Optimasi perulangan ini"*).
+
+#### C. Mengirim Seluruh Direktori / Folder
+Jika perubahan kode menyentuh banyak berkas sekaligus, Anda bisa melampirkan seluruh folder:
+1. Buka sidebar chat dengan **`<leader>ac`**.
+2. Tekan **`<leader>aD`** (*Add Directory to Chat*).
+3. Masukkan path folder pada prompt di bawah (contoh: `lua/plugins`). Tambahkan tanda seru `!` di akhir path untuk pencarian rekursif ke dalam sub-folder (contoh: `lua/plugins!`).
+4. Semua file teks dalam folder tersebut akan otomatis disalin ke dalam chat buffer sebagai lampiran konteks.
+
+---
+
+### 3. Menerapkan Rekomendasi Kode AI Secara Otomatis
+Setelah AI memberikan usulan perbaikan kode, Anda tidak perlu melakukan copy-paste manual. Gunakan metode berikut untuk memperbarui berkas kode Anda:
+
+#### Metode A: Inline Edit & Diff System (Sangat Direkomendasikan)
+Ini adalah alur kerja terbaik karena menerapkan kode langsung dengan visualisasi perbedaan (diff):
+1. Seleksi kode atau buka file yang ingin diperbaiki, lalu tekan **`<leader>ai`** (Inline Edit).
+2. Tulis instruksi Anda dan tekan `<CR>`.
+3. AI akan mulai menulis kode perubahan secara langsung di dalam file Anda dengan format git diff (hijau untuk kode baru, merah untuk kode lama).
+4. Tekan keymap berikut untuk mengeksekusi aksi:
+    *   **`ga`** (*Accept change*): Menyetujui saran AI dan langsung menerapkan perubahan tersebut ke berkas Anda secara permanen.
+    *   **`gr`** (*Reject change*): Menolak saran AI dan langsung membatalkan perubahan, mengembalikan kode Anda seperti semula.
+
+#### Metode B: Menyalin Blok Kode dari Chat Sidebar (`gy`)
+Jika Anda berdiskusi panjang di sidebar chat (`<leader>ac`) dan AI memberikan rekomendasi dalam sebuah blok kode markdown:
+1. Pindahkan kursor Anda ke dalam blok kode yang disarankan di jendela chat.
+2. Tekan **`gy`** (*Yank Codeblock*). Blok kode tersebut akan otomatis tersalin ke clipboard sistem.
+3. Pindah fokus kembali ke file kode Anda (`Ctrl+h` atau `Ctrl+l`), pilih baris yang akan diganti, lalu lakukan paste (`p`).
+
+#### Metode C: Menggunakan Agentic Tools (`@editor`)
+Di dalam chat buffer, Anda dapat memberikan instruksi langsung kepada AI agent untuk memodifikasi file dengan mengetik simbol **`@`** lalu memilih tool **`@editor`** atau **`@cmd_runner`**. AI agent akan menulis/merefactor kode di latar belakang menggunakan tool tersebut atas izin Anda.
+
 ## Struktur folder
 
 ```
