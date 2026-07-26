@@ -272,6 +272,7 @@ Tombol **Leader** pada konfigurasi ini diset ke tombol **`Space`** (Spasi).
 | `Leader + ac` | Normal / Visual | **Toggle chat sidebar** — buka/tutup panel chat AI di sebelah kanan |
 | `Leader + aa` | Normal / Visual | Actions palette — daftar semua aksi AI yang tersedia |
 | `Leader + ai` | Normal / Visual | Inline edit — minta AI tulis/edit langsung di buffer |
+| `Leader + ah` | Normal / Visual | **Chat History** — buka daftar riwayat percakapan AI sebelumnya |
 | `Leader + aT` | Normal / Visual | Toggle adapter antara Claude (Anthropic) / Copilot (GitHub) / Ollama (Lokal) secara instan |
 | `Leader + am` | Normal / Visual | **Menu Pilih Model Copilot** — tampilkan daftar pilihan model Copilot (`gpt-4o`, `claude-3.5-sonnet`, `gemini-2.5-pro`, dll) |
 | `Leader + aM` | Normal / Visual | **Toggle Model Copilot Instan** — berganti cepat antar model Copilot (`gpt-4o` → `claude-3.5-sonnet` → `gemini-2.5-pro` → `gpt-4o-mini` → `o3-mini` → `auto`) |
@@ -311,6 +312,8 @@ Tombol **Leader** pada konfigurasi ini diset ke tombol **`Space`** (Spasi).
 | `Ctrl + s` | Insert | Kirim pesan ke AI |
 | `Enter` | Normal | Kirim pesan ke AI |
 | `Ctrl + c` | Normal | Stop generation AI |
+| `gh` | Normal | **Browse Chat History** — buka daftar riwayat percakapan yang tersimpan |
+| `sc` | Normal | **Save Chat** — simpan sesi chat aktif secara manual |
 | `q` | Normal | Tutup / sembunyikan chat sidebar |
 | `Tab` / `S-Tab` | Insert | Pilih item pelengkap otomatis (autocomplete) berikutnya / sebelumnya |
 

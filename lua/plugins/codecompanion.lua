@@ -163,7 +163,7 @@ Instruksi tambahan:
                         refresh_every_n_prompts = 0,
                         max_refreshes = 1,
                     },
-                    continue_last_chat = false,
+                    continue_last_chat = true, -- Auto-continue percakapan terakhir saat membuka chat
                     delete_on_clearing_chat = false,
                     dir_to_save = vim.fn.stdpath("data") .. "/codecompanion-history",
                     enable_logging = false,
@@ -338,6 +338,14 @@ Instruksi tambahan:
         { "<leader>ac", "<cmd>CodeCompanionChat Toggle<CR>",  mode = { "n", "v" }, desc = "AI: Toggle chat sidebar" },
         { "<leader>aa", "<cmd>CodeCompanionActions<CR>",      mode = { "n", "v" }, desc = "AI: Actions palette" },
         { "<leader>ai", "<cmd>CodeCompanion<CR>",             mode = { "n", "v" }, desc = "AI: Inline edit" },
+        {
+            "<leader>ah",
+            function()
+                require("codecompanion._extensions.history").exports.browse_chats()
+            end,
+            mode = { "n", "v" },
+            desc = "AI: Browse chat history",
+        },
 
         -- Toggle Adapter Instan antara Claude (Anthropic), Copilot (GitHub), & Ollama (Lokal)
         {
