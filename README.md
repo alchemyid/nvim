@@ -42,9 +42,31 @@ Graphify berfungsi untuk mengekstrak seluruh arsitektur proyek (_codebase_) menj
     
 2.  Install Graphify (versi terintegrasi Ollama): uv tool install "graphifyy\[ollama\]"
 
-3.  Beri tahu Graphify di mana lokasi Ollama Anda berada **export OLLAMA_BASE_URL="http://192.168.0.100:11434/v1"**
+3. **Pilihan Backend Graphify saat Memulai Project**:
+   Masuk ke folder root project Anda, lalu jalankan salah satu perintah berikut:
 
-4.  Setiap kali memulai project, masuk ke folder root project kemudian execute **graphify extact . --backend ollama** agar graphify menggunakan ollama local.
+   - **A. Menggunakan Claude (Anthropic)**:
+     ```bash
+     export ANTHROPIC_API_KEY="sk-ant-..."
+     graphify extract . --backend claude
+     ```
+
+   - **B. Menggunakan OpenAI / Copilot API**:
+     ```bash
+     export OPENAI_API_KEY="sk-..."
+     graphify extract . --backend openai
+     ```
+
+   - **C. Menggunakan Ollama (Lokal)**:
+     ```bash
+     export OLLAMA_BASE_URL="http://192.168.0.100:11434/v1"
+     graphify extract . --backend ollama
+     ```
+
+   - **D. Tanpa LLM / AST Code-Only (Gratis, Instan & Cepat tanpa kuota API)**:
+     ```bash
+     graphify extract . --code-only
+     ```
 
 5.  Sugest pertama kali dengan prompt berikut :
 ````shell
