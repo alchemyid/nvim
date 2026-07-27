@@ -331,6 +331,30 @@ Instruksi tambahan:
                     },
                 },
             },
+            ["Beautify Code"] = {
+                strategy = "inline",
+                description = "Rapikan spacing, indentasi, dan keindahan kode (Code Beauty)",
+                opts = { alias = "beautify", auto_submit = true, placement = "replace" },
+                prompts = {
+                    {
+                        role = "system",
+                        content = "Rapikan indentasi, spacing, style, penamaan, dan tata letak kode agar lebih bersih, mudah dibaca, dan mengikuti standar style guide bahasa pemrograman terkait. Output HANYA kode yang sudah dirapikan, tanpa penjelasan tambahan." .. INLINE_RULES,
+                    },
+                    {
+                        role = "user",
+                        content = function(context)
+                            local start_line = context.is_visual and context.start_line or 1
+                            local end_line = context.is_visual and context.end_line or vim.api.nvim_buf_line_count(context.bufnr)
+                            local code = require("codecompanion.helpers.code").get_code(start_line, end_line)
+                            return string.format(
+                                "Rapikan spacing, indentasi, dan perindah kode %s berikut:\n\n```%s\n%s\n```",
+                                context.filetype, context.filetype, code
+                            )
+                        end,
+                        opts = { contains_code = true },
+                    },
+                },
+            },
         },
     },
 
@@ -452,6 +476,7 @@ Instruksi tambahan:
         { "<leader>ad", function() require("codecompanion").prompt("docs") end,     mode = { "n", "v" }, desc = "AI: Add documentation" },
         { "<leader>at", function() require("codecompanion").prompt("tests") end,    mode = { "n", "v" }, desc = "AI: Generate tests" },
         { "<leader>ao", function() require("codecompanion").prompt("refactor") end, mode = { "n", "v" }, desc = "AI: Refactor code" },
+        { "<leader>ay", function() require("codecompanion").prompt("beautify") end, mode = { "n", "v" }, desc = "AI: Beautify code" },
 
         -- Tambah file code ke chat sebagai context
         {

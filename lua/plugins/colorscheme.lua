@@ -10,7 +10,7 @@ return {
   config = function()
     require("onedark").setup({
       -- Options: dark, darker, cool, deep, warm, warmer, light
-      style = "deep",
+      style = "darker",
 
       -- Toggle style in-editor with <leader>ts (also mapped in keymaps.lua)
       toggle_style_key = "<leader>ts",
@@ -36,8 +36,18 @@ return {
       },
 
       -- Custom Highlights: extend or override highlight groups
-      colors = {},
-      highlights = {},
+      colors = {
+        bright_orange = "#ff8800",    -- define a new color
+        green = '#00ffaa',            -- redefine an existing color
+      },
+      highlights = {
+        ["@lsp.type.keyword"] = { fg = "$green" },
+        ["@lsp.type.property"] = {fg = '$bright_orange', bg = '#00ff00', fmt = 'bold'},
+        ["@lsp.type.function"] =  {fg = '#0000ff', sp = '$cyan', fmt = 'underline,italic'},
+        ["@lsp.type.method"] = { link = "@function" },
+        -- To add language specific config
+        ["@lsp.type.variable.go"] = { fg = "none" },
+      },
 
       -- Diagnostics config
       diagnostics = {

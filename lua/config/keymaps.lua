@@ -17,3 +17,10 @@ map("n", "<C-k>", "<C-w>k", { desc = "Go to upper window" })
 
 -- Onedark style toggle (also configurable via toggle_style_key, see colorscheme.lua)
 map("n", "<leader>ts", "<cmd>lua require('onedark').toggle()<CR>", { desc = "Toggle onedark style" })
+
+-- Better indenting in visual mode (preserves visual selection)
+map("v", "<Tab>", ">gv", { desc = "Indent selected block" })
+map("v", "<S-Tab>", "<gv", { desc = "Outdent selected block" })
+map("v", ">", ">gv", { desc = "Indent selected block" })
+map("v", "<", "<gv", { desc = "Outdent selected block" })
+

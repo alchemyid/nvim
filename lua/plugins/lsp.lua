@@ -58,6 +58,10 @@ return {
           vim.lsp.buf.definition()
         end
       end, { desc = "Go to definition (Ctrl+Click)"})
+
+      vim.keymap.set({ "n", "v" }, "<leader>cf", function()
+        vim.lsp.buf.format({ async = true })
+      end, { desc = "Format code (LSP)" })
     end,
   },
 }

@@ -262,6 +262,8 @@ Tombol **Leader** pada konfigurasi ini diset ke tombol **`Space`** (Spasi).
 | `Ctrl + j` | `Ctrl + w` lalu `j` | Pindah fokus ke window bawah |
 | `Ctrl + k` | `Ctrl + w` lalu `k` | Pindah fokus ke window atas |
 | `Leader + ts` | Onedark toggle | Ganti style Onedark (`dark`, `darker`, `cool`, `deep`, `warm`, `warmer`, `light`) |
+| `Tab` | `>gv` (Visual Mode) | Indent block kode (geser kanan) & pertahankan seleksi |
+| `Shift + Tab` | `<gv` (Visual Mode) | Outdent block kode (geser kiri) & pertahankan seleksi |
 
 #### File Explorer & Fuzzy Finder (Telescope)
 | Shortcut | Plugin | Deskripsi |
@@ -280,6 +282,7 @@ Tombol **Leader** pada konfigurasi ini diset ke tombol **`Space`** (Spasi).
 | `K` | `vim.lsp.buf.hover` | Tampilkan pop-up dokumentasi/tipe di bawah kursor |
 | `Leader + rn` | `vim.lsp.buf.rename` | Rename nama simbol di seluruh project |
 | `Leader + ca` | `vim.lsp.buf.code_action` | Tampilkan menu saran perbaikan (code action) |
+| `Leader + cf` | `vim.lsp.buf.format` | Format file / kode terpilih (LSP auto-spacing & styling) |
 | `[d` | `vim.diagnostic.goto_prev` | Lompat ke error/diagnostic sebelumnya |
 | `]d` | `vim.diagnostic.goto_next` | Lompat ke error/diagnostic berikutnya |
 
@@ -373,6 +376,7 @@ Tombol **Leader** pada konfigurasi ini diset ke tombol **`Space`** (Spasi).
 | `Leader + ad` | Normal / Visual | Add documentation — tambahkan komentar/dokumentasi (langsung replace) |
 | `Leader + at` | Normal / Visual | Generate tests — buat unit test untuk kode (tampil di chat) |
 | `Leader + ao` | Normal / Visual | Refactor code — optimasi readability & performa (langsung replace) |
+| `Leader + ay` | Normal / Visual | Beautify code — rapikan spacing, indentasi, & tata letak kode (langsung replace) |
 
 **Menerapkan / Menolak Hasil Edit Inline (Diff View)**
 | Shortcut | Mode | Deskripsi |
