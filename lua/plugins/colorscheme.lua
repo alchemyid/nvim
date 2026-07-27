@@ -37,17 +37,10 @@ return {
 
       -- Custom Highlights: extend or override highlight groups
       colors = {
-        bright_orange = "#ff8800",    -- define a new color
-        green = '#00ffaa',            -- redefine an existing color
+        bg0 = "#000000", -- Mengubah background editor utama menjadi hitam pekat (seperti iTerm)
+        bg_d = "#000000", -- Mengubah background sidebar/gutter menjadi hitam pekat
       },
-      highlights = {
-        ["@lsp.type.keyword"] = { fg = "$green" },
-        ["@lsp.type.property"] = {fg = '$bright_orange', bg = '#00ff00', fmt = 'bold'},
-        ["@lsp.type.function"] =  {fg = '#0000ff', sp = '$cyan', fmt = 'underline,italic'},
-        ["@lsp.type.method"] = { link = "@function" },
-        -- To add language specific config
-        ["@lsp.type.variable.go"] = { fg = "none" },
-      },
+      highlights = {},
 
       -- Diagnostics config
       diagnostics = {
