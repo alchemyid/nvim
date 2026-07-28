@@ -11,7 +11,7 @@ return {
     "williamboman/mason-lspconfig.nvim",
     dependencies = { "mason.nvim" },
     opts = {
-      ensure_installed = { "lua_ls" }, -- add servers you need, e.g. "pyright", "tsserver"
+      ensure_installed = { "lua_ls", "pyright" }, -- add servers you need, e.g. "pyright", "tsserver"
     },
   },
   {
@@ -33,6 +33,7 @@ return {
         capabilities = vim.tbl_deep_extend("force", capabilities, cmp_lsp.default_capabilities())
       end
 
+      -- Lua configuration
       vim.lsp.config("lua_ls", {
         capabilities = capabilities,
         settings = {
@@ -43,6 +44,47 @@ return {
       })
 
       vim.lsp.enable("lua_ls")
+
+      -- Python (pyright) configuration with virtualenv auto-detection
+      local function get_python_path()
+        -- 1. Check for active virtualenv in the terminal session
+        if vim.env.VIRTUAL_ENV then
+          return vim.env.VIRTUAL_ENV .. "/bin/python"
+        end
+
+        -- 2. Check for local .venv, venv, pyenv, or env folders in the current workspace directory
+        local cwd = vim.fn.getcwd()
+        local paths = {
+          cwd .. "/.venv/bin/python",
+          cwd .. "/venv/bin/python",
+          cwd .. "/pyenv/bin/python",
+          cwd .. "/env/bin/python",
+        }
+        for _, path in ipairs(paths) do
+          if vim.fn.executable(path) == 1 then
+            return path
+          end
+        end
+
+        -- 3. Fallback to default python3
+        return "python3"
+      end
+
+      vim.lsp.config("pyright", {
+        capabilities = capabilities,
+        settings = {
+          python = {
+            pythonPath = get_python_path(),
+            analysis = {
+              autoSearchPaths = true,
+              useLibraryCodeForTypes = true,
+              diagnosticMode = "workspace",
+            },
+          },
+        },
+      })
+
+      vim.lsp.enable("pyright")
 
       vim.keymap.set("n", "gd", vim.lsp.buf.definition, { desc = "Go to definition" })
       vim.keymap.set("n", "K", vim.lsp.buf.hover, { desc = "Hover docs" })

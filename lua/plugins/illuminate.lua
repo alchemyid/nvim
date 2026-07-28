@@ -7,7 +7,7 @@ return {
   event = { "BufReadPost", "BufNewFile" },
   config = function()
     require("illuminate").configure({
-      providers = { "lsp", "treesitter", "regex" },
+      providers = { "lsp", "regex" },
       delay = 150,
     })
   end,
