@@ -360,6 +360,7 @@ Instruksi tambahan:
 
     keys = {
         { "<leader>ac", "<cmd>CodeCompanionChat Toggle<CR>",  mode = { "n", "v" }, desc = "AI: Toggle chat sidebar" },
+        { "<leader>an", "<cmd>CodeCompanionChat<CR>",         mode = { "n", "v" }, desc = "AI: Open new chat session" },
         { "<leader>aa", "<cmd>CodeCompanionActions<CR>",      mode = { "n", "v" }, desc = "AI: Actions palette" },
         { "<leader>ai", "<cmd>CodeCompanion<CR>",             mode = { "n", "v" }, desc = "AI: Inline edit" },
         {

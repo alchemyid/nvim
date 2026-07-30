@@ -364,6 +364,7 @@ Tombol **Leader** pada konfigurasi ini diset ke tombol **`Space`** (Spasi).
 | Shortcut | Mode | Deskripsi |
 |---|---|---|
 | `Leader + ac` | Normal / Visual | **Toggle chat sidebar** — buka/tutup panel chat AI di sebelah kanan |
+| `Leader + an` | Normal / Visual | **Chat Baru (New Chat)** — buka sesi/ruang percakapan AI baru yang kosong |
 | `Leader + aa` | Normal / Visual | Actions palette — daftar semua aksi AI yang tersedia |
 | `Leader + ai` | Normal / Visual | Inline edit — minta AI tulis/edit langsung di buffer |
 | `Leader + ah` | Normal / Visual | **Chat History** — buka daftar riwayat percakapan AI sebelumnya |
