@@ -275,6 +275,23 @@ Tombol **Leader** pada konfigurasi ini diset ke tombol **`Space`** (Spasi).
 | `Leader + fb` | Telescope | Cari daftar buffer yang sedang terbuka |
 | `Leader + fh` | Telescope | Cari dokumentasi help tags |
 
+> **Navigasi & Operasi Berkas di Dalam File Explorer (`NvimTree` / `<leader>e`):**
+> Tekan `<leader>e` untuk membuka sidebar, lalu gunakan tombol berikut saat kursor berada di file explorer:
+> - **Memindahkan File (`file.php` ke folder lain)**:
+>   - **Cara 1 (Rename/Move)**: Tekan **`r`** pada file `file.php` $\rightarrow$ ubah lokasi menjadi `directory/file.php` $\rightarrow$ tekan `Enter`.
+>   - **Cara 2 (Cut & Paste)**: Tekan **`x`** pada file $\rightarrow$ pindah kursor ke folder tujuan $\rightarrow$ tekan **`p`**.
+>
+> | Shortcut (di NvimTree) | Aksi / Deskripsi |
+> |---|---|
+> | `r` | **Rename / Move** — Ubah nama atau ketik folder tujuan (misal `directory/file.php`) |
+> | `x` | **Cut** — Potong file/folder untuk dipindahkan |
+> | `c` | **Copy** — Salin file/folder |
+> | `p` | **Paste** — Tempel file/folder hasil Cut/Copy ke folder terpilih |
+> | `a` | **Add** — Buat file baru (akhiri dengan `/` untuk membuat folder baru) |
+> | `d` | **Delete** — Hapus file/folder (dengan konfirmasi `y/n`) |
+> | `Enter` / `o` | Buka file atau toggle direktori |
+> | `q` | Tutup sidebar file explorer |
+
 #### LSP (Language Server Protocol)
 | Shortcut | Perintah | Deskripsi |
 |---|---|---|
