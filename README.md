@@ -458,12 +458,23 @@ Tombol **Leader** pada konfigurasi ini diset ke tombol **`Space`** (Spasi).
 | `y` / `d` / `c` | Copy / Delete / Change teks yang dipilih |
 
 #### Pencarian & Penggantian (Search & Replace)
-| Shortcut | Fungsi |
-|---|---|
-| `/pattern` | Cari `pattern` ke depan (`n` berikutnya, `N` sebelumnya) |
-| `?pattern` | Cari `pattern` ke belakang |
-| `*` / `#` | Cari kata di bawah kursor ke arah depan / belakang |
-| `:%s/old/new/g` | Ganti semua kata `old` menjadi `new` di seluruh file |
+| Shortcut / Command | Jenis | Deskripsi |
+|---|---|---|
+| `/pattern` | Pencarian | Cari teks/pattern (`n` untuk hasil berikutnya, `N` untuk hasil sebelumnya) |
+| `*` / `#` | Pencarian | Cari kata di bawah kursor ke arah depan / belakang |
+| `:%s/old/new/g` | Ganti (Buffer) | **Replace All** — Ganti semua kata `old` menjadi `new` di file aktif saat ini |
+| `:%s/old/new/gc` | Ganti (Buffer) | **Replace with Confirmation** — Ganti kata `old` menjadi `new` dengan konfirmasi satu per satu (`y` / `n`) |
+| `:'<,'>s/old/new/g` | Ganti (Seleksi) | Ganti kata `old` menjadi `new` hanya pada baris yang diseleksi (Visual Mode) |
+| `Leader + rn` | Ganti (Project) | **LSP Rename** — Rename nama variabel/fungsi secara aman di seluruh file project sekaligus |
+
+> **Cara Melakukan Replace All di Seluruh File Project (Global Replace):**
+> 1. Cari kata yang ingin diganti lewat Telescope: tekan **`<leader>fg`** (live_grep) lalu ketik kata tersebut.
+> 2. Kirim hasil pencarian ke panel daftar perbaikan (Quickfix list): tekan **`Ctrl + q`** di Telescope.
+> 3. Jalankan perintah penggantian massal berikut:
+>    ```vim
+>    :cdo %s/kata_lama/kata_baru/g | update
+>    ```
+>    *(Tekan `Enter`. Semua kecocokan kata di seluruh file proyek akan diganti dan disimpan secara otomatis).*
 
 #### Manajemen Window & Split
 | Shortcut | Fungsi |
