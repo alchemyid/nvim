@@ -228,15 +228,13 @@ dijalankan bersamaan), karena fungsinya tumpang tindih dengan plugin lain yang s
 aktif (dua file explorer / dua indent-guide sekaligus biasanya cuma bikin bentrok
 keymap & visual). Tinggal aktifkan salah satu.
 
-## Mengganti style onedark
+## Mengganti Style & Colorscheme
 
-Edit `style` di `lua/plugins/colorscheme.lua`:
+Secara default template ini menggunakan **[vscode.nvim](https://github.com/Mofiqul/vscode.nvim)** (VS Code theme). Anda bisa mengonfigurasinya di [colorscheme.lua](file:///home/x/.config/nvim/lua/plugins/colorscheme.lua).
 
-```lua
-style = "darker", -- dark | darker | cool | deep | warm | warmer | light
-```
+Untuk berganti antara mode **VS Code Dark** dan **VS Code Light**, tekan shortcut **`<leader>ts`** secara langsung di dalam Neovim.
 
-Atau toggle langsung di dalam nvim dengan `<leader>ts`.
+Jika ingin kembali menggunakan **onedark.nvim**, cukup buka [colorscheme.lua](file:///home/x/.config/nvim/lua/plugins/colorscheme.lua), ubah `lazy = true` pada `vscode.nvim` dan `lazy = false` pada `onedark.nvim`, lalu aktifkan pemanggilan `require("onedark").load()` di konfigurasinya.
 
 ## Menambah LSP server / test adapter
 
@@ -261,7 +259,7 @@ Tombol **Leader** pada konfigurasi ini diset ke tombol **`Space`** (Spasi).
 | `Ctrl + l` | `Ctrl + w` lalu `l` | Pindah fokus ke window sebelah kanan |
 | `Ctrl + j` | `Ctrl + w` lalu `j` | Pindah fokus ke window bawah |
 | `Ctrl + k` | `Ctrl + w` lalu `k` | Pindah fokus ke window atas |
-| `Leader + ts` | Onedark toggle | Ganti style Onedark (`dark`, `darker`, `cool`, `deep`, `warm`, `warmer`, `light`) |
+| `Leader + ts` | Theme toggle | Berpindah antara tema VS Code Dark dan Light |
 | `Tab` | `>gv` (Visual Mode) | Indent block kode (geser kanan) & pertahankan seleksi |
 | `Shift + Tab` | `<gv` (Visual Mode) | Outdent block kode (geser kiri) & pertahankan seleksi |
 

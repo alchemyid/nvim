@@ -15,8 +15,15 @@ map("n", "<C-l>", "<C-w>l", { desc = "Go to right window" })
 map("n", "<C-j>", "<C-w>j", { desc = "Go to lower window" })
 map("n", "<C-k>", "<C-w>k", { desc = "Go to upper window" })
 
--- Onedark style toggle (also configurable via toggle_style_key, see colorscheme.lua)
-map("n", "<leader>ts", "<cmd>lua require('onedark').toggle()<CR>", { desc = "Toggle onedark style" })
+-- Toggle light/dark background style (dynamic theme switching)
+map("n", "<leader>ts", function()
+  if vim.o.background == "dark" then
+    vim.o.background = "light"
+  else
+    vim.o.background = "dark"
+  end
+  vim.cmd("colorscheme vscode")
+end, { desc = "Toggle vscode dark/light theme" })
 
 -- Better indenting in visual mode (preserves visual selection)
 map("v", "<Tab>", ">gv", { desc = "Indent selected block" })

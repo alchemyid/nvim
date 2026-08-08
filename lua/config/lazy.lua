@@ -22,7 +22,7 @@ require("lazy").setup({
   spec = {
     { import = "plugins" },
   },
-  install = { colorscheme = { "onedark" } },
+  install = { colorscheme = { "vscode", "onedark" } },
   checker = { enabled = true, notify = false }, -- auto check for plugin updates
   change_detection = { notify = false },
   performance = {
