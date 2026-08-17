@@ -9,7 +9,6 @@ if vim.fn.isdirectory(cargo_bin) == 1 and not string.find(vim.env.PATH or "", ca
 end
 
 local opt = vim.opt
-
 opt.termguicolors = true -- required for onedark.nvim to render correctly
 opt.number = true
 opt.relativenumber = true
@@ -18,34 +17,34 @@ opt.cursorline = true
 opt.wrap = false
 opt.scrolloff = 8
 opt.sidescrolloff = 8
-
 opt.expandtab = true
 opt.shiftwidth = 2
 opt.tabstop = 2
 opt.softtabstop = 2
 opt.smartindent = true
-
 opt.ignorecase = true
 opt.smartcase = true
 opt.incsearch = true
 opt.hlsearch = true
-
 opt.splitright = true
 opt.splitbelow = true
-
 opt.swapfile = false
 opt.backup = false
 opt.undofile = true
 opt.undodir = vim.fn.stdpath("state") .. "/undo"
-
 opt.updatetime = 200
 opt.timeoutlen = 400
-
-opt.clipboard = "unnamedplus"
 opt.mouse = "a"
 
 -- ── System Clipboard Provider Setup ─────────────────────────────────────
--- Prioritas OSC 52 jika sesi remote (SSH) agar copy dari remote Neovim langsung masuk ke clipboard laptop lokal.
+-- PENTING: g:clipboard HARUS didefinisikan SEBELUM opt.clipboard di-set.
+-- Neovim me-resolve & cache clipboard provider begitu opt.clipboard diaktifkan,
+-- jadi kalau g:clipboard belum ada saat itu, provider bisa salah detect
+-- (fallback ke xclip/xsel yang tidak berfungsi tanpa DISPLAY di server headless)
+-- atau hasilnya ke-cache sebagai "no provider" dan tidak refresh lagi.
+--
+-- Prioritas OSC 52 jika sesi remote (SSH) agar copy dari remote Neovim
+-- langsung masuk ke clipboard laptop lokal.
 local is_ssh = (vim.env.SSH_CLIENT ~= nil or vim.env.SSH_TTY ~= nil or vim.env.SSH_CONNECTION ~= nil)
 
 if is_ssh then
@@ -105,6 +104,9 @@ else
     }
   end
 end
+
+-- Set clipboard option SETELAH g:clipboard didefinisikan di atas
+opt.clipboard = "unnamedplus"
 
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
