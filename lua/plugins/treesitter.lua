@@ -30,7 +30,7 @@ return {
 
       require("tree-sitter-manager").setup({
         ensure_installed = {
-          "lua", "vim", "vimdoc", "query",
+          "lua", "vim", "query",
           "bash", "json", "yaml", "markdown", "markdown_inline",
           "python", "javascript", "typescript", "tsx", "html", "css",
         },

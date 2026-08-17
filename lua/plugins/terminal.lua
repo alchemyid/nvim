@@ -57,13 +57,12 @@ return {
 
         local Terminal = require("toggleterm.terminal").Terminal
 
-        -- Leader+tt → toggle terminal di bawah (horizontal, mirip panel VSCode)
-        vim.keymap.set({ "n", "t" }, "<leader>tt", function()
+        -- Leader shortcuts (hanya di Normal mode 'n' agar tidak mengganggu spasi saat mengetik di terminal)
+        vim.keymap.set("n", "<leader>tt", function()
             require("toggleterm").toggle(1, nil, nil, "horizontal")
         end, { desc = "Terminal: Toggle bawah" })
 
-        -- Leader+tz → toggle terminal floating (popup tengah)
-        vim.keymap.set({ "n", "t" }, "<leader>tz", function()
+        vim.keymap.set("n", "<leader>tz", function()
             require("toggleterm").toggle(2, nil, nil, "float")
         end, { desc = "Terminal: Toggle floating" })
 
@@ -91,7 +90,9 @@ return {
         end, { desc = "Terminal: Lazygit" })
 
         -- ── Navigasi dari dalam terminal ─────────────────────────────────
-        vim.keymap.set("t", "<Esc>", "<C-\\><C-n>",        { desc = "Terminal: Normal mode" })
+        -- Gunakan <Esc><Esc> atau <C-\><C-n> untuk pindah ke Normal mode
+        -- (Mencegah tombol Delete / sequence tombol di terminal memicu Esc & membatalkan mode insert)
+        vim.keymap.set("t", "<Esc><Esc>", "<C-\\><C-n>",   { desc = "Terminal: Normal mode" })
         vim.keymap.set("t", "<C-h>", "<C-\\><C-n><C-w>h",  { desc = "Terminal: Window kiri" })
         vim.keymap.set("t", "<C-j>", "<C-\\><C-n><C-w>j",  { desc = "Terminal: Window bawah" })
         vim.keymap.set("t", "<C-k>", "<C-\\><C-n><C-w>k",  { desc = "Terminal: Window atas" })
