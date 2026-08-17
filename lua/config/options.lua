@@ -45,8 +45,19 @@ opt.clipboard = "unnamedplus"
 opt.mouse = "a"
 
 -- ── System Clipboard Provider Setup ─────────────────────────────────────
--- Mencegah "clipboard: No provider" & menangani `xclip` error di Linux/X11/Wayland/Terminal/OSC52
-if vim.fn.has("wsl") == 1 then
+-- Prioritas OSC 52 jika sesi remote (SSH) agar copy dari remote Neovim langsung masuk ke clipboard laptop lokal.
+local is_ssh = (vim.env.SSH_CLIENT ~= nil or vim.env.SSH_TTY ~= nil or vim.env.SSH_CONNECTION ~= nil)
+
+if is_ssh then
+  local osc52_ok, osc52 = pcall(require, "vim.ui.clipboard.osc52")
+  if osc52_ok then
+    vim.g.clipboard = {
+      name = "OSC 52 (SSH Remote)",
+      copy = { ["+"] = osc52.copy("+"), ["*"] = osc52.copy("*") },
+      paste = { ["+"] = osc52.paste("+"), ["*"] = osc52.paste("*") },
+    }
+  end
+elseif vim.fn.has("wsl") == 1 then
   vim.g.clipboard = {
     name = "WslClipboard",
     copy = { ["+"] = "clip.exe", ["*"] = "clip.exe" },
