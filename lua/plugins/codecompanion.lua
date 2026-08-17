@@ -158,7 +158,7 @@ Instruksi tambahan:
                     picker = "telescope",
                     auto_generate_title = true,
                     title_generation_opts = {
-                        adapter = nil,
+                        adapter = "copilot",
                         model = nil,
                         refresh_every_n_prompts = 0,
                         max_refreshes = 1,
