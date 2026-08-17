@@ -87,7 +87,7 @@ return {
         -- ─── Interactions Configuration ──────────────────────────────────
         interactions = {
             chat = {
-                adapter = "anthropic", -- Default: Claude (Anthropic)
+                adapter = "copilot", -- Default: GitHub Copilot
 
                 opts = {
                     system_prompt = function(ctx)
@@ -121,11 +121,11 @@ Instruksi tambahan:
             },
 
             inline = {
-                adapter = "anthropic", -- Default: Claude (Anthropic)
+                adapter = "copilot", -- Default: GitHub Copilot
             },
 
             cmd = {
-                adapter = "anthropic", -- Default: Claude (Anthropic)
+                adapter = "copilot", -- Default: GitHub Copilot
             },
 
             -- Keymap global untuk Approve (`ga`) / Reject (`gr`) hasil edit diff
