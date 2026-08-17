@@ -44,5 +44,56 @@ opt.timeoutlen = 400
 opt.clipboard = "unnamedplus"
 opt.mouse = "a"
 
+-- ── System Clipboard Provider Setup ─────────────────────────────────────
+-- Mencegah "clipboard: No provider" & menangani `xclip` error di Linux/X11/Wayland/Terminal/OSC52
+if vim.fn.has("wsl") == 1 then
+  vim.g.clipboard = {
+    name = "WslClipboard",
+    copy = { ["+"] = "clip.exe", ["*"] = "clip.exe" },
+    paste = {
+      ["+"] = "powershell.exe -c [Console]::Out.Write($(Get-Clipboard -Raw).ToString().Replace(\"`r`n\", \"`n\"))",
+      ["*"] = "powershell.exe -c [Console]::Out.Write($(Get-Clipboard -Raw).ToString().Replace(\"`r`n\", \"`n\"))",
+    },
+    cache_enabled = 0,
+  }
+elseif vim.fn.executable("wl-copy") == 1 then
+  vim.g.clipboard = {
+    name = "wl-clipboard",
+    copy = { ["+"] = "wl-copy --type text/plain", ["*"] = "wl-copy --type text/plain" },
+    paste = { ["+"] = "wl-paste --no-newline", ["*"] = "wl-paste --no-newline" },
+    cache_enabled = 1,
+  }
+elseif vim.fn.executable("xsel") == 1 then
+  vim.g.clipboard = {
+    name = "xsel",
+    copy = { ["+"] = "xsel --nodetach -i -b", ["*"] = "xsel --nodetach -i -p" },
+    paste = { ["+"] = "xsel -o -b", ["*"] = "xsel -o -p" },
+    cache_enabled = 1,
+  }
+elseif vim.fn.executable("xclip") == 1 then
+  vim.g.clipboard = {
+    name = "xclip",
+    copy = { ["+"] = "xclip -quiet -i -selection clipboard", ["*"] = "xclip -quiet -i -selection primary" },
+    paste = {
+      ["+"] = function()
+        return vim.fn.systemlist("xclip -o -selection clipboard 2>/dev/null")
+      end,
+      ["*"] = function()
+        return vim.fn.systemlist("xclip -o -selection primary 2>/dev/null")
+      end,
+    },
+    cache_enabled = 1,
+  }
+else
+  local osc52_ok, osc52 = pcall(require, "vim.ui.clipboard.osc52")
+  if osc52_ok then
+    vim.g.clipboard = {
+      name = "OSC 52",
+      copy = { ["+"] = osc52.copy("+"), ["*"] = osc52.copy("*") },
+      paste = { ["+"] = osc52.paste("+"), ["*"] = osc52.paste("*") },
+    }
+  end
+end
+
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
