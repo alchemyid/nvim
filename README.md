@@ -11,9 +11,12 @@ dikonfigurasi agar warnanya konsisten.
   `nvim-treesitter` yang sudah di-archive). Untuk fitur LSP semantic tokens, dsb.
 - `git` terpasang di PATH (dipakai lazy.nvim untuk clone plugin).
 - `tree-sitter` CLI (dipakai `tree-sitter-manager.nvim` untuk compile parser bahasa).
-  Install via: ```bash
-npm install -g tree-sitter-cli
-```
+  Install via:
+  ```bash
+  npm install -g tree-sitter-cli
+  # atau via Rust Cargo:
+  cargo install tree-sitter-cli
+  ```
 - `gcc` atau `clang` (C compiler untuk build parser).
 - Opsional: [Nerd Font](https://www.nerdfonts.com/) di terminal, supaya icon
   (nvim-web-devicons, dashboard, lualine, dll) tampil dengan benar.
@@ -334,8 +337,8 @@ Tombol **Leader** pada konfigurasi ini diset ke tombol **`Space`** (Spasi).
 #### Terminal Terintegrasi (toggleterm.nvim)
 | Shortcut | Mode | Deskripsi |
 |---|---|---|
-| `Leader + tt` | Normal / Terminal | **Toggle terminal di bawah** — panel horizontal mirip VSCode |
-| `Leader + tz` | Normal / Terminal | Toggle terminal floating (popup di tengah layar) |
+| `Leader + tt` | Normal | **Toggle terminal di bawah** — panel horizontal mirip VSCode |
+| `Leader + tz` | Normal | Toggle terminal floating (popup di tengah layar) |
 | `Leader + tv` | Normal | Buka terminal vertikal (sidebar kanan) |
 | `Leader + tg` | Normal | Buka **Lazygit** di floating terminal |
 
@@ -344,18 +347,18 @@ Tombol **Leader** pada konfigurasi ini diset ke tombol **`Space`** (Spasi).
 **Di dalam terminal:**
 | Shortcut | Deskripsi |
 |---|---|
-| `Esc` | Masuk Normal mode (untuk navigasi atau copy-paste) |
-| `Ctrl + h/j/k/l` | Pindah ke window Neovim lain tanpa keluar terminal |
+| `Esc` + `Esc` | Masuk Normal mode |
+| `Alt + h/j/k/l` | Pindah ke window Neovim lain tanpa keluar terminal (`Ctrl+h` dihindari karena menyamai tombol Backspace) |
 
 #### AI Coding Assistant & Autocomplete (codecompanion.nvim + GitHub Copilot & Ollama)
 
 > Plugin: [`codecompanion.nvim`](https://github.com/olimorris/codecompanion.nvim) (Chat & Inline Edit) & [`copilot.lua`](https://github.com/zbirenbaum/copilot.lua) (Ghost Text Autocomplete).
 > **Pilihan Adapter Chat / Inline Edit:**
-> - **Claude 3.7 (Anthropic) [DEFAULT]**: Model utama dengan kemampuan penalaran & agentic tool calling terbaik. Pastikan `export ANTHROPIC_API_KEY="sk-ant-..."` telah dieksekusi di shell Anda.
-> - **GitHub Copilot (Cloud)**: Model `gpt-4o` cloud via API GitHub Copilot.
+> - **GitHub Copilot (Cloud) [DEFAULT]**: Model utama bawaan (`gpt-4o` / Copilot API). Cukup jalankan `:Copilot auth` untuk login.
+> - **Claude 3.7 (Anthropic)**: Model opsional dengan kemampuan penalaran & agentic tool calling. Perlu `export ANTHROPIC_API_KEY="sk-ant-..."`.
 > - **Ollama (Lokal)**: Model `qwen2.5-coder:7b` lokal (`http://192.168.0.100:11434`).
 >
-> *Tekan `<leader>aT` untuk beralih instan antar adapter (Claude 3.7 → GitHub Copilot → Ollama 7B).*
+> *Tekan `<leader>aT` untuk beralih instan antar adapter (GitHub Copilot → Ollama 7B → Claude 3.7).*
 > *Untuk login/autentikasi GitHub Copilot pertama kali, jalankan `:Copilot auth` di Neovim.*
 
 **Chat & General (Input Context & Setup)**

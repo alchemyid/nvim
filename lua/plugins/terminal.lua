@@ -91,11 +91,14 @@ return {
 
         -- ── Navigasi dari dalam terminal ─────────────────────────────────
         -- Gunakan <Esc><Esc> atau <C-\><C-n> untuk pindah ke Normal mode
-        -- (Mencegah tombol Delete / sequence tombol di terminal memicu Esc & membatalkan mode insert)
         vim.keymap.set("t", "<Esc><Esc>", "<C-\\><C-n>",   { desc = "Terminal: Normal mode" })
-        vim.keymap.set("t", "<C-h>", "<C-\\><C-n><C-w>h",  { desc = "Terminal: Window kiri" })
-        vim.keymap.set("t", "<C-j>", "<C-\\><C-n><C-w>j",  { desc = "Terminal: Window bawah" })
-        vim.keymap.set("t", "<C-k>", "<C-\\><C-n><C-w>k",  { desc = "Terminal: Window atas" })
-        vim.keymap.set("t", "<C-l>", "<C-\\><C-n><C-w>l",  { desc = "Terminal: Window kanan" })
+
+        -- Gunakan Alt + h/j/k/l untuk navigasi window dari terminal tanpa keluar insert mode.
+        -- CATATAN: Ctrl+h TIDAK dipakai di terminal mode karena Ctrl+h menyamai tombol Backspace (<BS>)
+        -- di banyak terminal Unix/Linux, yang menyebabkan tombol Hapus/Backspace melempar Neovim ke Normal mode.
+        vim.keymap.set("t", "<A-h>", "<C-\\><C-n><C-w>h",  { desc = "Terminal: Window kiri" })
+        vim.keymap.set("t", "<A-j>", "<C-\\><C-n><C-w>j",  { desc = "Terminal: Window bawah" })
+        vim.keymap.set("t", "<A-k>", "<C-\\><C-n><C-w>k",  { desc = "Terminal: Window atas" })
+        vim.keymap.set("t", "<A-l>", "<C-\\><C-n><C-w>l",  { desc = "Terminal: Window kanan" })
     end,
 }
