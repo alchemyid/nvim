@@ -25,6 +25,9 @@ require("lazy").setup({
   install = { colorscheme = { "vscode", "onedark" } },
   checker = { enabled = true, notify = false }, -- auto check for plugin updates
   change_detection = { notify = false },
+  git = {
+    timeout = 300, -- Naikkan timeout menjadi 5 menit agar plugin besar (seperti copilot.lua) tidak stuck saat koneksi lambat
+  },
   performance = {
     rtp = {
       -- disable some unused built-in vim plugins for faster startup
