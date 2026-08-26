@@ -60,6 +60,9 @@ return {
     lazy = true,  -- hanya dimuat saat dibutuhkan plugin lain
     build = ":TSUpdate",
     opts = {
+      ensure_installed = {},
+      ignore_install = { "vimdoc", "vim", "lua", "c" },
+      auto_install = false,
       highlight = { enable = false },  -- native treesitter sudah menangani ini
       indent = { enable = false },
     },
