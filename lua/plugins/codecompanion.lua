@@ -1,5 +1,5 @@
 -- lua/plugins/codecompanion.lua
--- AI Assistant di Neovim berbasis Claude (Anthropic), GitHub Copilot, & Ollama (Lokal).
+-- AI Assistant di Neovim berbasis Claude (Anthropic), GitHub Copilot, Ollama (Lokal), & Hermes Agent (ACP).
 -- Menggunakan skema `interactions` (v19+).
 --
 -- Experience mirip VSCode Copilot Chat / Antigravity / Cursor:
@@ -8,7 +8,7 @@
 -- 3. Approvals (`ga` / `gr`):
 ---   - Tekan `ga` (Accept) di Normal mode untuk MENYETUJUI & menerapkan hasil edit langsung ke kode Anda.
 ---   - Tekan `gr` (Reject) untuk MENOLAK saran edit.
--- 4. Fast Toggle Adapter (`<leader>aT`): Beralih secara instan antara Claude 3.7 (Cloud), GitHub Copilot, dan Qwen 7B (Lokal).
+-- 4. Fast Toggle Adapter (`<leader>aT`): Beralih secara instan antara Claude 3.7 (Cloud), GitHub Copilot, Ollama 7B (Lokal), dan Hermes Agent (ACP localhost:9119).
 
 local INLINE_RULES = [[
 
@@ -25,8 +25,38 @@ return {
         "ravitemer/codecompanion-history.nvim",      -- Chat History: save, browse & restore session
     },
     opts = {
-        -- ─── Configuration Adapters (HTTP) ──────────────────────────────
+        -- ─── Configuration Adapters (ACP & HTTP) ────────────────────────
         adapters = {
+            acp = {
+                hermes = function()
+                    local cmd
+                    if vim.fn.executable("hermes") == 1 then
+                        -- Saat nvim dieksekusi langsung di dalam server Homelab
+                        cmd = { "hermes", "acp" }
+                    else
+                        -- Saat nvim dieksekusi di laptop lokal (remote over SSH)
+                        cmd = {
+                            "ssh",
+                            "-i",
+                            vim.fn.expand("~/.ssh/id_rsa.girirahayu"),
+                            "-o",
+                            "IdentitiesOnly=yes",
+                            "-q",
+                            "me@labs.metal.alche.my.id",
+                            "hermes",
+                            "acp",
+                        }
+                    end
+
+                    return require("codecompanion.adapters").extend("acp", {
+                        name = "hermes",
+                        formatted_name = "Hermes Agent (ACP)",
+                        commands = {
+                            default = cmd,
+                        },
+                    })
+                end,
+            },
             http = {
                 anthropic = function()
                     return require("codecompanion.adapters").extend("anthropic", {
@@ -372,7 +402,7 @@ Instruksi tambahan:
             desc = "AI: Browse chat history",
         },
 
-        -- Toggle Adapter Instan antara Claude (Anthropic), Copilot (GitHub), & Ollama (Lokal)
+        -- Toggle Adapter Instan antara Claude (Anthropic), Copilot (GitHub), Ollama (Lokal), & Hermes Agent (ACP)
         {
             "<leader>aT",
             function()
@@ -382,7 +412,8 @@ Instruksi tambahan:
                 local cycle = {
                     anthropic = { target = "copilot",   name = "GitHub Copilot (Cloud)" },
                     copilot   = { target = "ollama",    name = "Ollama 7B (Lokal)" },
-                    ollama    = { target = "anthropic", name = "Claude 3.7 (Anthropic)" },
+                    ollama    = { target = "hermes",    name = "Hermes Agent (ACP Local :9119)" },
+                    hermes    = { target = "anthropic", name = "Claude 3.7 (Anthropic)" },
                 }
 
                 local info = cycle[current] or cycle["anthropic"]
@@ -396,7 +427,7 @@ Instruksi tambahan:
                 vim.notify("AI Adapter switched to: " .. name, vim.log.levels.INFO, { title = "CodeCompanion" })
             end,
             mode = { "n", "v" },
-            desc = "AI: Toggle Claude / Copilot / Ollama",
+            desc = "AI: Toggle Claude / Copilot / Ollama / Hermes",
         },
 
         -- Switch Model Copilot via Menu (<leader>am) atau Toggle (<leader>aM)

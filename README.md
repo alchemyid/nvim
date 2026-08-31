@@ -92,7 +92,7 @@ Bagian ini menjelaskan langkah-langkah praktis untuk menggunakan **[codecompanio
 Anda memiliki fleksibilitas penuh untuk mengganti model AI (seperti GPT-4o, Claude, Gemini, dll) atau adapter (Copilot Cloud, Claude Cloud, Ollama Lokal). 
 
 *   **Siklus Cepat Adapter (`<leader>aT`)**: 
-    Tekan `<leader>aT` untuk berpindah adapter secara instan: Claude 3.7 Sonnet (Cloud) ➔ GitHub Copilot (Cloud) ➔ Ollama Qwen 7B (Lokal).
+    Tekan `<leader>aT` untuk berpindah adapter secara instan: Claude 3.7 Sonnet (Cloud) ➔ GitHub Copilot (Cloud) ➔ Ollama Qwen 7B (Lokal) ➔ Hermes Agent (ACP Local :9119).
 *   **Menu Pemilihan Model Copilot (`<leader>am`)**: 
     Jika Anda sedang menggunakan adapter `copilot`, tekan `<leader>am` untuk memunculkan menu visual (Telescope / `vim.ui.select`) berisi pilihan model yang tersedia:
     *   GPT-4o (OpenAI)
@@ -350,15 +350,16 @@ Tombol **Leader** pada konfigurasi ini diset ke tombol **`Space`** (Spasi).
 | `Esc` + `Esc` | Masuk Normal mode |
 | `Alt + h/j/k/l` | Pindah ke window Neovim lain tanpa keluar terminal (`Ctrl+h` dihindari karena menyamai tombol Backspace) |
 
-#### AI Coding Assistant & Autocomplete (codecompanion.nvim + GitHub Copilot & Ollama)
+#### AI Coding Assistant & Autocomplete (codecompanion.nvim + GitHub Copilot, Ollama, & Hermes)
 
 > Plugin: [`codecompanion.nvim`](https://github.com/olimorris/codecompanion.nvim) (Chat & Inline Edit) & [`copilot.lua`](https://github.com/zbirenbaum/copilot.lua) (Ghost Text Autocomplete).
 > **Pilihan Adapter Chat / Inline Edit:**
 > - **GitHub Copilot (Cloud) [DEFAULT]**: Model utama bawaan (`gpt-4o` / Copilot API). Cukup jalankan `:Copilot auth` untuk login.
 > - **Claude 3.7 (Anthropic)**: Model opsional dengan kemampuan penalaran & agentic tool calling. Perlu `export ANTHROPIC_API_KEY="sk-ant-..."`.
 > - **Ollama (Lokal)**: Model `qwen2.5-coder:7b` lokal (`http://192.168.0.100:11434`).
+> - **Hermes Agent (ACP)**: Agent local via ACP host `http://localhost:9119`.
 >
-> *Tekan `<leader>aT` untuk beralih instan antar adapter (GitHub Copilot → Ollama 7B → Claude 3.7).*
+> *Tekan `<leader>aT` untuk beralih instan antar adapter (GitHub Copilot → Ollama 7B → Hermes Agent → Claude 3.7).*
 > *Untuk login/autentikasi GitHub Copilot pertama kali, jalankan `:Copilot auth` di Neovim.*
 
 **Chat & General (Input Context & Setup)**
@@ -369,7 +370,7 @@ Tombol **Leader** pada konfigurasi ini diset ke tombol **`Space`** (Spasi).
 | `Leader + aa` | Normal / Visual | Actions palette — daftar semua aksi AI yang tersedia |
 | `Leader + ai` | Normal / Visual | Inline edit — minta AI tulis/edit langsung di buffer |
 | `Leader + ah` | Normal / Visual | **Chat History** — buka daftar riwayat percakapan AI sebelumnya |
-| `Leader + aT` | Normal / Visual | Toggle adapter antara Claude (Anthropic) / Copilot (GitHub) / Ollama (Lokal) secara instan |
+| `Leader + aT` | Normal / Visual | Toggle adapter antara Claude (Anthropic) / Copilot (GitHub) / Ollama (Lokal) / Hermes (ACP) secara instan |
 | `Leader + am` | Normal / Visual | **Menu Pilih Model Copilot** — tampilkan daftar pilihan model Copilot (`gpt-4o`, `claude-3.5-sonnet`, `gemini-2.5-pro`, dll) |
 | `Leader + aM` | Normal / Visual | **Toggle Model Copilot Instan** — berganti cepat antar model Copilot (`gpt-4o` → `claude-3.5-sonnet` → `gemini-2.5-pro` → `gpt-4o-mini` → `o3-mini` → `auto`) |
 | `Leader + ab` | Normal / Visual | Tambah buffer file aktif sebagai context ke chat |
