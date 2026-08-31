@@ -32,9 +32,9 @@ return {
                     local cmd
                     if vim.fn.executable("hermes") == 1 then
                         -- Saat nvim dieksekusi langsung di dalam server Homelab
-                        cmd = { "hermes", "acp" }
+                        cmd = { "hermes", "acp", "--accept-hooks" }
                     else
-                        -- Saat nvim dieksekusi di laptop lokal (remote over SSH)
+                        -- Saat nvim dieksekusi dari laptop lokal (remote over SSH)
                         cmd = {
                             "ssh",
                             "-i",
@@ -42,19 +42,55 @@ return {
                             "-o",
                             "IdentitiesOnly=yes",
                             "-q",
-                            "me@labs.metal.alche.my.id",
-                            "hermes",
-                            "acp",
+                            "-l",
+                            "me",
+                            "labs.alche.my.id",
+                            "hermes acp --accept-hooks",
                         }
                     end
 
-                    return require("codecompanion.adapters").extend("acp", {
+                    local helpers = require("codecompanion.adapters.acp.helpers")
+                    return {
                         name = "hermes",
                         formatted_name = "Hermes Agent (ACP)",
+                        type = "acp",
+                        roles = {
+                            llm = "assistant",
+                            user = "user",
+                        },
+                        opts = {
+                            vision = true,
+                        },
                         commands = {
                             default = cmd,
                         },
-                    })
+                        defaults = {
+                            mcpServers = {},
+                            timeout = 30000,
+                        },
+                        parameters = {
+                            protocolVersion = 1,
+                            clientCapabilities = {
+                                fs = { readTextFile = true, writeTextFile = true },
+                            },
+                            clientInfo = {
+                                name = "CodeCompanion.nvim",
+                                version = "1.0.0",
+                            },
+                        },
+                        handlers = {
+                            setup = function(self)
+                                return true
+                            end,
+                            auth = function(self)
+                                return true
+                            end,
+                            form_messages = function(self, messages, capabilities)
+                                return helpers.form_messages(self, messages, capabilities)
+                            end,
+                            on_exit = function(self, code) end,
+                        },
+                    }
                 end,
             },
             http = {
