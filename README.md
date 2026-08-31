@@ -91,8 +91,8 @@ Bagian ini menjelaskan langkah-langkah praktis untuk menggunakan **[codecompanio
 ### 1. Memilih dan Mengganti Model AI (Model Switching)
 Anda memiliki fleksibilitas penuh untuk mengganti model AI (seperti GPT-4o, Claude, Gemini, dll) atau adapter (Copilot Cloud, Claude Cloud, Ollama Lokal). 
 
-*   **Menu Pemilihan Adapter AI (`<leader>at`)**:
-    Tekan `<leader>at` untuk memunculkan daftar menu pop-up visual (`vim.ui.select`) berisi semua adapter AI (Hermes Agent, GitHub Copilot, Claude 3.7, Ollama 7B) lengkap dengan status aktif `[✓ Aktif]`.
+*   **Menu Pemilihan Adapter AI (`<leader>as`)**:
+    Tekan `<leader>as` untuk memunculkan daftar menu pop-up visual (`vim.ui.select`) berisi semua adapter AI (Hermes Agent, GitHub Copilot, Claude 3.7, Ollama 7B) lengkap dengan status aktif `[✓ Aktif]`.
 *   **Siklus Cepat Adapter (`<leader>aT`)**: 
     Tekan `<leader>aT` untuk berganti adapter secara berurutan instan tanpa membuka menu.
 *   **Menu Pemilihan Model Copilot (`<leader>am`)**: 
@@ -372,7 +372,7 @@ Tombol **Leader** pada konfigurasi ini diset ke tombol **`Space`** (Spasi).
 | `Leader + aa` | Normal / Visual | Actions palette — daftar semua aksi AI yang tersedia |
 | `Leader + ai` | Normal / Visual | Inline edit — minta AI tulis/edit langsung di buffer |
 | `Leader + ah` | Normal / Visual | **Chat History** — buka daftar riwayat percakapan AI sebelumnya |
-| `Leader + at` | Normal / Visual | **Menu Pilih Adapter AI** — tampilkan daftar pilihan adapter AI (`Hermes`, `Copilot`, `Claude`, `Ollama`) |
+| `Leader + as` | Normal / Visual | **Menu Pilih Adapter AI** — tampilkan daftar pilihan adapter AI (`Hermes`, `Copilot`, `Claude`, `Ollama`) |
 | `Leader + aT` | Normal / Visual | Toggle/rotasi adapter AI secara instan tanpa menu popup |
 | `Leader + am` | Normal / Visual | **Menu Pilih Model Copilot** — tampilkan daftar pilihan model Copilot (`gpt-4o`, `claude-3.5-sonnet`, `gemini-2.5-pro`, dll) |
 | `Leader + aM` | Normal / Visual | **Toggle Model Copilot Instan** — berganti cepat antar model Copilot (`gpt-4o` → `claude-3.5-sonnet` → `gemini-2.5-pro` → `gpt-4o-mini` → `o3-mini` → `auto`) |

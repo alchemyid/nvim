@@ -446,9 +446,9 @@ Instruksi tambahan:
             desc = "AI: Browse chat history",
         },
 
-        -- Menu Pemilihan Adapter AI via Popup List (<leader>at)
+        -- Menu Pemilihan Adapter AI via Popup List (<leader>as)
         {
-            "<leader>at",
+            "<leader>as",
             function()
                 local config = require("codecompanion.config")
                 local current = config.interactions.chat.adapter
