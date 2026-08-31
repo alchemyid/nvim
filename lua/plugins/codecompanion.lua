@@ -29,12 +29,18 @@ return {
         adapters = {
             acp = {
                 hermes = function()
+                    local is_remote_server = (vim.uv or vim.loop).os_uname().sysname == "Linux"
                     local cmd
-                    if vim.fn.executable("hermes") == 1 then
+
+                    if is_remote_server or vim.fn.executable("hermes") == 1 or vim.fn.executable(vim.fn.expand("~/.local/bin/hermes")) == 1 then
                         -- Saat nvim dieksekusi langsung di dalam server Homelab
-                        cmd = { "hermes", "acp", "--accept-hooks" }
+                        local hermes_path = "hermes"
+                        if vim.fn.executable("hermes") ~= 1 and vim.fn.executable(vim.fn.expand("~/.local/bin/hermes")) == 1 then
+                            hermes_path = vim.fn.expand("~/.local/bin/hermes")
+                        end
+                        cmd = { hermes_path, "acp", "--accept-hooks" }
                     else
-                        -- Saat nvim dieksekusi dari laptop lokal (remote over SSH)
+                        -- Saat nvim dieksekusi dari laptop lokal Mac (remote over SSH)
                         cmd = {
                             "ssh",
                             "-i",
@@ -155,7 +161,7 @@ return {
         -- ─── Interactions Configuration ──────────────────────────────────
         interactions = {
             chat = {
-                adapter = "copilot", -- Default: GitHub Copilot
+                adapter = "hermes", -- Default: Hermes Agent (ACP)
 
                 opts = {
                     system_prompt = function(ctx)
@@ -189,11 +195,11 @@ Instruksi tambahan:
             },
 
             inline = {
-                adapter = "copilot", -- Default: GitHub Copilot
+                adapter = "hermes", -- Default: Hermes Agent (ACP)
             },
 
             cmd = {
-                adapter = "copilot", -- Default: GitHub Copilot
+                adapter = "hermes", -- Default: Hermes Agent (ACP)
             },
 
             -- Keymap global untuk Approve (`ga`) / Reject (`gr`) hasil edit diff
@@ -438,6 +444,40 @@ Instruksi tambahan:
             end,
             mode = { "n", "v" },
             desc = "AI: Browse chat history",
+        },
+
+        -- Menu Pemilihan Adapter AI via Popup List (<leader>at)
+        {
+            "<leader>at",
+            function()
+                local config = require("codecompanion.config")
+                local current = config.interactions.chat.adapter
+
+                local adapters_list = {
+                    { id = "hermes",    name = "Hermes Agent (ACP)" },
+                    { id = "copilot",   name = "GitHub Copilot (Cloud)" },
+                    { id = "anthropic", name = "Claude 3.7 Sonnet (Anthropic)" },
+                    { id = "ollama",    name = "Ollama 7B (Lokal)" },
+                }
+
+                vim.ui.select(adapters_list, {
+                    prompt = "🤖 Pilih AI Adapter:",
+                    format_item = function(item)
+                        local status = (item.id == current) and " [✓ Aktif]" or ""
+                        return item.name .. status
+                    end,
+                }, function(choice)
+                    if not choice then return end
+
+                    config.interactions.chat.adapter = choice.id
+                    config.interactions.inline.adapter = choice.id
+                    config.interactions.cmd.adapter = choice.id
+
+                    vim.notify("AI Adapter aktif: " .. choice.name, vim.log.levels.INFO, { title = "CodeCompanion" })
+                end)
+            end,
+            mode = { "n", "v" },
+            desc = "AI: Menu pilih Adapter (List popup)",
         },
 
         -- Toggle Adapter Instan antara Claude (Anthropic), Copilot (GitHub), Ollama (Lokal), & Hermes Agent (ACP)
