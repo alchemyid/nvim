@@ -448,7 +448,7 @@ Instruksi tambahan:
                 local cycle = {
                     anthropic = { target = "copilot",   name = "GitHub Copilot (Cloud)" },
                     copilot   = { target = "ollama",    name = "Ollama 7B (Lokal)" },
-                    ollama    = { target = "hermes",    name = "Hermes Agent (ACP Local :9119)" },
+                    ollama    = { target = "hermes",    name = "Hermes Agent" },
                     hermes    = { target = "anthropic", name = "Claude 3.7 (Anthropic)" },
                 }
 
