@@ -232,7 +232,7 @@ Instruksi tambahan:
                     picker = "telescope",
                     auto_generate_title = true,
                     title_generation_opts = {
-                        adapter = "copilot",
+                        adapter = nil, -- Otomatis mengikuti adapter yang sedang aktif
                         model = nil,
                         refresh_every_n_prompts = 0,
                         max_refreshes = 1,
