@@ -45,7 +45,9 @@ return {
                             "-l",
                             "me",
                             "labs.alche.my.id",
-                            "hermes acp --accept-hooks",
+                            "hermes",
+                            "acp",
+                            "--accept-hooks",
                         }
                     end
 
@@ -65,7 +67,7 @@ return {
                             default = cmd,
                         },
                         defaults = {
-                            mcpServers = {},
+                            mcpServers = (vim.empty_vector and vim.empty_vector()) or {},
                             timeout = 30000,
                         },
                         parameters = {
