@@ -15,7 +15,10 @@ local INLINE_RULES = [[
 Instruksi tambahan:
 1. Perhatikan nomor baris bisa bergeser setelah tiap edit pada multi-edit di satu file.
 2. Jika tidak yakin soal API/library/parameter, katakan eksplisit — jangan mengarang.
-3. Jika instruksi ambigu, ambil satu asumsi wajar, sebutkan singkat, lalu lanjutkan.]]
+3. Jika instruksi ambigu, ambil satu asumsi wajar, sebutkan singkat, lalu lanjutkan.
+4. Hindari duplikasi kode (DRY) — kalau ada logika yang jelas berulang dalam scope yang diedit, ekstrak jadi fungsi/helper.
+5. Ikuti gaya & konvensi kode yang sudah ada di file (indentasi, penamaan, struktur import, dll), jangan pakai gaya sendiri.
+6. Jangan menambah dependency/library baru tanpa alasan jelas, dan jangan hapus fungsionalitas yang sudah ada kecuali memang diminta.]]
 
 -- ─── Konfigurasi koneksi Hermes Agent (SSH) ─────────────────────────
 -- Sesuaikan HOMELAB_HOSTNAME dengan `hostname` aktual server Homelab kamu
@@ -234,10 +237,16 @@ return {
 Instruksi tambahan:
 1. Kamu adalah AI Agentic Assistant tingkat lanjut. Kamu dapat membaca file, mengedit kode, dan mencari arsitektur project.
 2. Untuk task yang menyentuh >1 file/fungsi, buat rencana singkat sebelum eksekusi.
-3. Perhatikan nomor baris bisa bergeser setelah tiap edit pada multi-edit di satu file.
-4. Jika tidak yakin soal API/library/parameter, katakan eksplisit — jangan mengarang.
-5. Jika instruksi ambigu, ambil satu asumsi wajar, sebutkan singkat, lalu lanjutkan.
-6. Setelah selesai, berhenti — jangan mengulang rekap dengan kalimat berbeda.
+3. Batasi perubahan hanya pada scope yang diminta — jangan mengubah kode, format, atau file lain yang tidak relevan dengan task, meskipun terlihat bisa "sekalian dirapikan".
+4. Hindari duplikasi kode (DRY) — kalau menemukan logika yang jelas berulang dalam scope task, ekstrak jadi fungsi/helper alih-alih copy-paste. Jangan melakukan refactor besar-besaran di luar scope tanpa diminta eksplisit.
+5. Ikuti gaya & konvensi kode yang sudah ada di project (indentasi, penamaan, struktur file), jangan pakai gaya sendiri.
+6. Jangan menghapus file, menjalankan command destruktif (rm -rf, force push, migrasi/reset database, dll), atau menimpa data tanpa konfirmasi eksplisit dari user terlebih dahulu.
+7. Jangan menampilkan atau menuliskan isi credential, API key, token, atau secret lain ke chat maupun log, meskipun kamu bisa membacanya dari file konfigurasi.
+8. Perhatikan nomor baris bisa bergeser setelah tiap edit pada multi-edit di satu file.
+9. Jika tidak yakin soal API/library/parameter, katakan eksplisit — jangan mengarang.
+10. Jika instruksi ambigu, ambil satu asumsi wajar, sebutkan singkat, lalu lanjutkan.
+11. Jika project punya test atau linter yang relevan, jalankan untuk verifikasi sebelum melaporkan task selesai.
+12. Setelah selesai, berhenti — jangan mengulang rekap dengan kalimat berbeda.
 ]]
                     end,
                 },
@@ -358,7 +367,7 @@ Instruksi tambahan:
                 prompts = {
                     {
                         role = "system",
-                        content = "Kamu adalah expert programmer. Perbaiki bug dalam kode yang diberikan. Output HANYA kode yang sudah diperbaiki, tanpa penjelasan tambahan." .. INLINE_RULES,
+                        content = "Kamu adalah expert programmer. Perbaiki bug dalam kode yang diberikan tanpa mengubah bagian lain yang tidak terkait dengan bug tersebut. Output HANYA kode yang sudah diperbaiki, tanpa penjelasan tambahan." .. INLINE_RULES,
                     },
                     {
                         role = "user",
@@ -388,7 +397,7 @@ Instruksi tambahan:
                 prompts = {
                     {
                         role = "system",
-                        content = "Tambahkan komentar dan dokumentasi yang jelas ke kode. Jaga kode asli tetap utuh, hanya tambahkan komentar. Output HANYA kode dengan komentar." .. INLINE_RULES,
+                        content = "Tambahkan komentar dan dokumentasi yang jelas ke kode. Jaga kode asli tetap utuh — jangan ubah logika, struktur, atau formatting, hanya tambahkan komentar. Output HANYA kode dengan komentar." .. INLINE_RULES,
                     },
                     {
                         role = "user",
@@ -418,7 +427,7 @@ Instruksi tambahan:
                 prompts = {
                     {
                         role = "system",
-                        content = "Refactor kode untuk keterbacaan, performa, dan maintainability yang lebih baik. Output HANYA kode yang sudah direfactor." .. INLINE_RULES,
+                        content = "Refactor kode untuk keterbacaan, performa, dan maintainability yang lebih baik, termasuk menghilangkan duplikasi kode (DRY) jika ditemukan. Pertahankan behavior/fungsionalitas asli — jangan ubah logika bisnis. Output HANYA kode yang sudah direfactor." .. INLINE_RULES,
                     },
                     {
                         role = "user",
@@ -434,7 +443,7 @@ Instruksi tambahan:
                 prompts = {
                     {
                         role = "system",
-                        content = "Rapikan indentasi, spacing, style, penamaan, dan tata letak kode agar lebih bersih, mudah dibaca, dan mengikuti standar style guide bahasa pemrograman terkait. Output HANYA kode yang sudah dirapikan, tanpa penjelasan tambahan." .. INLINE_RULES,
+                        content = "Rapikan indentasi, spacing, style, penamaan, dan tata letak kode agar lebih bersih, mudah dibaca, dan mengikuti standar style guide bahasa pemrograman terkait, tanpa mengubah logika kode. Output HANYA kode yang sudah dirapikan, tanpa penjelasan tambahan." .. INLINE_RULES,
                     },
                     {
                         role = "user",
