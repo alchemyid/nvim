@@ -17,6 +17,71 @@ Instruksi tambahan:
 2. Jika tidak yakin soal API/library/parameter, katakan eksplisit — jangan mengarang.
 3. Jika instruksi ambigu, ambil satu asumsi wajar, sebutkan singkat, lalu lanjutkan.]]
 
+-- ─── Konfigurasi koneksi Hermes Agent (SSH) ─────────────────────────
+-- Sesuaikan HOMELAB_HOSTNAME dengan `hostname` aktual server Homelab kamu
+-- (jalankan `hostname` di server untuk mengeceknya). Sebelumnya deteksi
+-- "apakah ini server remote" hanya berdasar `sysname == "Linux"`, yang keliru
+-- karena laptop lokal Ubuntu/Debian juga Linux dan akan salah terdeteksi
+-- sebagai server. Sekarang deteksi eksplisit lewat hostname, dengan opsi
+-- override manual via env var HERMES_REMOTE=1.
+local HERMES_HOMELAB_HOSTNAME = "labs" -- ganti sesuai hostname server kamu
+local HERMES_SSH = {
+    identity = vim.fn.expand("~/.ssh/id_rsa.girirahayu"),
+    user = "me",
+    host = "labs.alche.my.id",
+}
+
+-- ─── Helper bersama: cari window/buffer chat CodeCompanion yang sedang aktif ──
+local function find_codecompanion_chat()
+    for _, win in ipairs(vim.api.nvim_list_wins()) do
+        local buf = vim.api.nvim_win_get_buf(win)
+        if vim.bo[buf].filetype == "codecompanion" then
+            return win, buf
+        end
+    end
+    return nil, nil
+end
+
+-- ─── Helper bersama: append baris ke chat buffer, lalu fokus & masuk insert mode ──
+local function append_to_chat(chat_win, chat_buf, lines)
+    local last = vim.api.nvim_buf_line_count(chat_buf)
+    vim.api.nvim_buf_set_lines(chat_buf, last, -1, false, lines)
+    vim.api.nvim_set_current_win(chat_win)
+    vim.api.nvim_win_set_cursor(chat_win, { vim.api.nvim_buf_line_count(chat_buf), 0 })
+    vim.cmd("startinsert!")
+end
+
+-- ─── Helper bersama: ambil kode yang dipilih (visual) atau seluruh buffer ──
+local function get_selected_code(context)
+    local start_line = context.is_visual and context.start_line or 1
+    local end_line = context.is_visual and context.end_line or vim.api.nvim_buf_line_count(context.bufnr)
+    return start_line, end_line, require("codecompanion.helpers.code").get_code(start_line, end_line)
+end
+
+-- Prompt-library generator: setiap prompt sebelumnya menduplikasi logika
+-- "ambil kode terpilih lalu format jadi code block" — sekarang jadi satu factory.
+local function code_prompt(template)
+    return function(context)
+        local _, _, code = get_selected_code(context)
+        return string.format(template, context.filetype, context.filetype, code)
+    end
+end
+
+local FT_MAP = {
+    lua = "lua", py = "python", js = "javascript", ts = "typescript", tsx = "tsx",
+    jsx = "jsx", sh = "bash", go = "go", rs = "rust", toml = "toml", yaml = "yaml",
+    yml = "yaml", json = "json", md = "markdown", html = "html", css = "css",
+    c = "c", cpp = "cpp",
+}
+
+local function is_code_buffer(buf)
+    local ft = vim.bo[buf].filetype
+    local bt = vim.bo[buf].buftype
+    return ft ~= "codecompanion" and ft ~= "" and bt == ""
+        and ft ~= "neo-tree" and ft ~= "NvimTree" and ft ~= "toggleterm"
+        and ft ~= "qf" and ft ~= "help"
+end
+
 return {
     "olimorris/codecompanion.nvim",
     dependencies = {
@@ -29,31 +94,30 @@ return {
         adapters = {
             acp = {
                 hermes = function()
-                    local is_remote_server = (vim.uv or vim.loop).os_uname().sysname == "Linux"
-                    local cmd
+                    local hostname = (vim.uv or vim.loop).os_gethostname()
+                    local is_homelab_server = hostname == HERMES_HOMELAB_HOSTNAME or vim.env.HERMES_REMOTE == "1"
 
-                    if is_remote_server or vim.fn.executable("hermes") == 1 or vim.fn.executable(vim.fn.expand("~/.local/bin/hermes")) == 1 then
-                        -- Saat nvim dieksekusi langsung di dalam server Homelab
-                        local hermes_path = "hermes"
-                        if vim.fn.executable("hermes") ~= 1 and vim.fn.executable(vim.fn.expand("~/.local/bin/hermes")) == 1 then
-                            hermes_path = vim.fn.expand("~/.local/bin/hermes")
-                        end
-                        cmd = { hermes_path, "acp", "--accept-hooks" }
+                    local hermes_bin
+                    if vim.fn.executable("hermes") == 1 then
+                        hermes_bin = "hermes"
+                    elseif vim.fn.executable(vim.fn.expand("~/.local/bin/hermes")) == 1 then
+                        hermes_bin = vim.fn.expand("~/.local/bin/hermes")
+                    end
+
+                    local cmd
+                    if is_homelab_server and hermes_bin then
+                        -- Nvim dieksekusi langsung di dalam server Homelab
+                        cmd = { hermes_bin, "acp", "--accept-hooks" }
                     else
-                        -- Saat nvim dieksekusi dari laptop lokal Mac (remote over SSH)
+                        -- Nvim dieksekusi dari laptop lokal (remote over SSH)
                         cmd = {
                             "ssh",
-                            "-i",
-                            vim.fn.expand("~/.ssh/id_rsa.girirahayu"),
-                            "-o",
-                            "IdentitiesOnly=yes",
+                            "-i", HERMES_SSH.identity,
+                            "-o", "IdentitiesOnly=yes",
                             "-q",
-                            "-l",
-                            "me",
-                            "labs.alche.my.id",
-                            "hermes",
-                            "acp",
-                            "--accept-hooks",
+                            "-l", HERMES_SSH.user,
+                            HERMES_SSH.host,
+                            "hermes", "acp", "--accept-hooks",
                         }
                     end
 
@@ -73,7 +137,7 @@ return {
                             default = cmd,
                         },
                         defaults = {
-                            mcpServers = (vim.empty_vector and vim.empty_vector()) or {},
+                            mcpServers = vim.empty_dict(),
                             timeout = 30000,
                         },
                         parameters = {
@@ -280,15 +344,9 @@ Instruksi tambahan:
                 prompts = {
                     {
                         role = "user",
-                        content = function(context)
-                            local start_line = context.is_visual and context.start_line or 1
-                            local end_line = context.is_visual and context.end_line or vim.api.nvim_buf_line_count(context.bufnr)
-                            local code = require("codecompanion.helpers.code").get_code(start_line, end_line)
-                            return string.format(
-                                "Review kode %s berikut secara mendalam. Identifikasi bug, isu performa, celah keamanan, dan beri saran perbaikan dengan penjelasan:\n\n```%s\n%s\n```",
-                                context.filetype, context.filetype, code
-                            )
-                        end,
+                        content = code_prompt(
+                            "Review kode %s berikut secara mendalam. Identifikasi bug, isu performa, celah keamanan, dan beri saran perbaikan dengan penjelasan:\n\n```%s\n%s\n```"
+                        ),
                         opts = { contains_code = true },
                     },
                 },
@@ -304,15 +362,7 @@ Instruksi tambahan:
                     },
                     {
                         role = "user",
-                        content = function(context)
-                            local start_line = context.is_visual and context.start_line or 1
-                            local end_line = context.is_visual and context.end_line or vim.api.nvim_buf_line_count(context.bufnr)
-                            local code = require("codecompanion.helpers.code").get_code(start_line, end_line)
-                            return string.format(
-                                "Perbaiki bugs dalam kode %s berikut:\n\n```%s\n%s\n```",
-                                context.filetype, context.filetype, code
-                            )
-                        end,
+                        content = code_prompt("Perbaiki bugs dalam kode %s berikut:\n\n```%s\n%s\n```"),
                         opts = { contains_code = true },
                     },
                 },
@@ -324,15 +374,9 @@ Instruksi tambahan:
                 prompts = {
                     {
                         role = "user",
-                        content = function(context)
-                            local start_line = context.is_visual and context.start_line or 1
-                            local end_line = context.is_visual and context.end_line or vim.api.nvim_buf_line_count(context.bufnr)
-                            local code = require("codecompanion.helpers.code").get_code(start_line, end_line)
-                            return string.format(
-                                "Jelaskan kode %s berikut secara step-by-step dengan bahasa yang mudah dipahami:\n\n```%s\n%s\n```",
-                                context.filetype, context.filetype, code
-                            )
-                        end,
+                        content = code_prompt(
+                            "Jelaskan kode %s berikut secara step-by-step dengan bahasa yang mudah dipahami:\n\n```%s\n%s\n```"
+                        ),
                         opts = { contains_code = true },
                     },
                 },
@@ -348,15 +392,7 @@ Instruksi tambahan:
                     },
                     {
                         role = "user",
-                        content = function(context)
-                            local start_line = context.is_visual and context.start_line or 1
-                            local end_line = context.is_visual and context.end_line or vim.api.nvim_buf_line_count(context.bufnr)
-                            local code = require("codecompanion.helpers.code").get_code(start_line, end_line)
-                            return string.format(
-                                "Tambahkan dokumentasi ke kode %s berikut:\n\n```%s\n%s\n```",
-                                context.filetype, context.filetype, code
-                            )
-                        end,
+                        content = code_prompt("Tambahkan dokumentasi ke kode %s berikut:\n\n```%s\n%s\n```"),
                         opts = { contains_code = true },
                     },
                 },
@@ -368,15 +404,9 @@ Instruksi tambahan:
                 prompts = {
                     {
                         role = "user",
-                        content = function(context)
-                            local start_line = context.is_visual and context.start_line or 1
-                            local end_line = context.is_visual and context.end_line or vim.api.nvim_buf_line_count(context.bufnr)
-                            local code = require("codecompanion.helpers.code").get_code(start_line, end_line)
-                            return string.format(
-                                "Generate unit tests yang komprehensif untuk kode %s berikut:\n\n```%s\n%s\n```",
-                                context.filetype, context.filetype, code
-                            )
-                        end,
+                        content = code_prompt(
+                            "Generate unit tests yang komprehensif untuk kode %s berikut:\n\n```%s\n%s\n```"
+                        ),
                         opts = { contains_code = true },
                     },
                 },
@@ -392,15 +422,7 @@ Instruksi tambahan:
                     },
                     {
                         role = "user",
-                        content = function(context)
-                            local start_line = context.is_visual and context.start_line or 1
-                            local end_line = context.is_visual and context.end_line or vim.api.nvim_buf_line_count(context.bufnr)
-                            local code = require("codecompanion.helpers.code").get_code(start_line, end_line)
-                            return string.format(
-                                "Refactor kode %s berikut:\n\n```%s\n%s\n```",
-                                context.filetype, context.filetype, code
-                            )
-                        end,
+                        content = code_prompt("Refactor kode %s berikut:\n\n```%s\n%s\n```"),
                         opts = { contains_code = true },
                     },
                 },
@@ -416,15 +438,7 @@ Instruksi tambahan:
                     },
                     {
                         role = "user",
-                        content = function(context)
-                            local start_line = context.is_visual and context.start_line or 1
-                            local end_line = context.is_visual and context.end_line or vim.api.nvim_buf_line_count(context.bufnr)
-                            local code = require("codecompanion.helpers.code").get_code(start_line, end_line)
-                            return string.format(
-                                "Rapikan spacing, indentasi, dan perindah kode %s berikut:\n\n```%s\n%s\n```",
-                                context.filetype, context.filetype, code
-                            )
-                        end,
+                        content = code_prompt("Rapikan spacing, indentasi, dan perindah kode %s berikut:\n\n```%s\n%s\n```"),
                         opts = { contains_code = true },
                     },
                 },
@@ -473,7 +487,7 @@ Instruksi tambahan:
                     config.interactions.inline.adapter = choice.id
                     config.interactions.cmd.adapter = choice.id
 
-                    vim.notify("AI Adapter aktif: " .. choice.name, vim.log.levels.INFO, { title = "CodeCompanion" })
+                    vim.notify("AI Adapter aktif: " .. choice.name .. " (berlaku untuk chat baru)", vim.log.levels.INFO, { title = "CodeCompanion" })
                 end)
             end,
             mode = { "n", "v" },
@@ -594,16 +608,8 @@ Instruksi tambahan:
             function()
                 local run_add
                 run_add = function(is_retry)
-                    local target_buf, target_win
+                    local target_buf
                     local cur_buf = vim.api.nvim_get_current_buf()
-
-                    local function is_code_buffer(buf)
-                        local ft = vim.bo[buf].filetype
-                        local bt = vim.bo[buf].buftype
-                        return ft ~= "codecompanion" and ft ~= "" and bt == "" 
-                            and ft ~= "neo-tree" and ft ~= "NvimTree" and ft ~= "toggleterm" 
-                            and ft ~= "qf" and ft ~= "help"
-                    end
 
                     if is_code_buffer(cur_buf) then
                         target_buf = cur_buf
@@ -612,7 +618,6 @@ Instruksi tambahan:
                             local wbuf = vim.api.nvim_win_get_buf(win)
                             if is_code_buffer(wbuf) then
                                 target_buf = wbuf
-                                target_win = win
                                 break
                             end
                         end
@@ -628,13 +633,7 @@ Instruksi tambahan:
                     local filename = vim.fn.fnamemodify(filepath, ":~:.")
                     local ft       = vim.bo[target_buf].filetype
 
-                    local chat_win
-                    for _, win in ipairs(vim.api.nvim_list_wins()) do
-                        if vim.bo[vim.api.nvim_win_get_buf(win)].filetype == "codecompanion" then
-                            chat_win = win
-                            break
-                        end
-                    end
+                    local chat_win, chat_buf = find_codecompanion_chat()
 
                     if not chat_win then
                         vim.cmd("CodeCompanionChat Toggle")
@@ -642,17 +641,10 @@ Instruksi tambahan:
                         return
                     end
 
-                    local chat_buf = vim.api.nvim_win_get_buf(chat_win)
                     local code_lines = vim.list_extend({ "", "File: `" .. filename .. "`", "```" .. ft }, lines)
                     vim.list_extend(code_lines, { "```", "" })
 
-                    local last = vim.api.nvim_buf_line_count(chat_buf)
-                    vim.api.nvim_buf_set_lines(chat_buf, last, -1, false, code_lines)
-
-                    vim.api.nvim_set_current_win(chat_win)
-                    vim.api.nvim_win_set_cursor(chat_win, { vim.api.nvim_buf_line_count(chat_buf), 0 })
-                    vim.cmd("startinsert!")
-
+                    append_to_chat(chat_win, chat_buf, code_lines)
                     vim.notify("✓ " .. filename .. " disertakan ke chat", vim.log.levels.INFO, { title = "CodeCompanion" })
                 end
                 run_add(false)
@@ -665,13 +657,12 @@ Instruksi tambahan:
         {
             "<leader>aD",
             function()
-                local function inject_file_to_chat(chat_buf, chat_win, filepath)
+                local function inject_file_to_chat(chat_buf, filepath)
                     local lines = vim.fn.readfile(filepath)
                     if not lines or #lines == 0 then return false end
                     local relpath = vim.fn.fnamemodify(filepath, ":~:.")
                     local ext     = vim.fn.fnamemodify(filepath, ":e")
-                    local ft_map  = { lua="lua", py="python", js="javascript", ts="typescript", tsx="tsx", jsx="jsx", sh="bash", go="go", rs="rust", toml="toml", yaml="yaml", yml="yaml", json="json", md="markdown", html="html", css="css", c="c", cpp="cpp" }
-                    local ft = ft_map[ext] or ext or "text"
+                    local ft = FT_MAP[ext] or ext or "text"
 
                     local code_lines = { "", "File: `" .. relpath .. "`", "```" .. ft }
                     vim.list_extend(code_lines, lines)
@@ -687,14 +678,7 @@ Instruksi tambahan:
                     return vim.fn.systemlist(cmd)
                 end
 
-                local chat_win, chat_buf
-                for _, win in ipairs(vim.api.nvim_list_wins()) do
-                    if vim.bo[vim.api.nvim_win_get_buf(win)].filetype == "codecompanion" then
-                        chat_win = win
-                        chat_buf = vim.api.nvim_win_get_buf(win)
-                        break
-                    end
-                end
+                local chat_win, chat_buf = find_codecompanion_chat()
 
                 if not chat_win then
                     vim.cmd("CodeCompanionChat Toggle")
@@ -731,7 +715,7 @@ Instruksi tambahan:
                     for _, fpath in ipairs(files) do
                         local fsize = vim.fn.getfsize(fpath)
                         if fsize > 0 and fsize < 1024 * 1024 then
-                            if inject_file_to_chat(chat_buf, chat_win, fpath) then injected = injected + 1 end
+                            if inject_file_to_chat(chat_buf, fpath) then injected = injected + 1 end
                         else
                             table.insert(skipped, vim.fn.fnamemodify(fpath, ":t"))
                         end
@@ -768,14 +752,7 @@ Instruksi tambahan:
                 local lines = vim.fn.readfile(graph_file)
                 if not lines or #lines == 0 then return end
 
-                local chat_win, chat_buf
-                for _, win in ipairs(vim.api.nvim_list_wins()) do
-                    if vim.bo[vim.api.nvim_win_get_buf(win)].filetype == "codecompanion" then
-                        chat_win = win
-                        chat_buf = vim.api.nvim_win_get_buf(win)
-                        break
-                    end
-                end
+                local chat_win, chat_buf = find_codecompanion_chat()
 
                 if not chat_win then
                     vim.cmd("CodeCompanionChat Toggle")
@@ -797,13 +774,7 @@ Instruksi tambahan:
                 vim.list_extend(code_lines, lines)
                 vim.list_extend(code_lines, { "", "---", "" })
 
-                local last = vim.api.nvim_buf_line_count(chat_buf)
-                vim.api.nvim_buf_set_lines(chat_buf, last, -1, false, code_lines)
-
-                vim.api.nvim_set_current_win(chat_win)
-                vim.api.nvim_win_set_cursor(chat_win, { vim.api.nvim_buf_line_count(chat_buf), 0 })
-                vim.cmd("startinsert!")
-
+                append_to_chat(chat_win, chat_buf, code_lines)
                 vim.notify("✓ Laporan Graphify berhasil ditambahkan ke chat", vim.log.levels.INFO, { title = "CodeCompanion" })
             end,
             mode = { "n", "v" },
