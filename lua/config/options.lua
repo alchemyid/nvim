@@ -37,25 +37,22 @@ opt.timeoutlen = 400
 opt.mouse = "a"
 
 -- ── System Clipboard Provider Setup ─────────────────────────────────────
--- PENTING: g:clipboard HARUS didefinisikan SEBELUM opt.clipboard di-set.
--- Neovim me-resolve & cache clipboard provider begitu opt.clipboard diaktifkan,
--- jadi kalau g:clipboard belum ada saat itu, provider bisa salah detect
--- (fallback ke xclip/xsel yang tidak berfungsi tanpa DISPLAY di server headless)
--- atau hasilnya ke-cache sebagai "no provider" dan tidak refresh lagi.
---
--- Prioritas OSC 52 jika sesi remote (SSH) agar copy dari remote Neovim
--- langsung masuk ke clipboard laptop lokal.
-local is_ssh = (vim.env.SSH_CLIENT ~= nil or vim.env.SSH_TTY ~= nil or vim.env.SSH_CONNECTION ~= nil)
+-- Prioritas deteksi clipboard:
+-- 1. macOS: Biarkan Neovim menggunakan pbcopy/pbpaste bawaan.
+-- 2. WSL: clip.exe / powershell.
+-- 3. Wayland (dengan $WAYLAND_DISPLAY aktif): wl-copy / wl-paste.
+-- 4. X11 (hanya jika $DISPLAY aktif): xsel / xclip.
+-- 5. SSH / Headless Linux / Tmux (tanpa DISPLAY): OSC 52 (copy langsung ke clipboard laptop lokal).
 
-if is_ssh then
-  local osc52_ok, osc52 = pcall(require, "vim.ui.clipboard.osc52")
-  if osc52_ok then
-    vim.g.clipboard = {
-      name = "OSC 52 (SSH Remote)",
-      copy = { ["+"] = osc52.copy("+"), ["*"] = osc52.copy("*") },
-      paste = { ["+"] = osc52.paste("+"), ["*"] = osc52.paste("*") },
-    }
-  end
+local has_display = (vim.env.DISPLAY ~= nil and vim.env.DISPLAY ~= "")
+local has_wayland = (vim.env.WAYLAND_DISPLAY ~= nil and vim.env.WAYLAND_DISPLAY ~= "")
+local is_mac = (vim.fn.has("mac") == 1 or (vim.uv or vim.loop).os_uname().sysname == "Darwin")
+
+local osc52_ok, osc52 = pcall(require, "vim.ui.clipboard.osc52")
+
+if is_mac then
+  -- Di macOS, gunakan provider bawaan macOS (pbcopy/pbpaste)
+  vim.g.clipboard = nil
 elseif vim.fn.has("wsl") == 1 then
   vim.g.clipboard = {
     name = "WslClipboard",
@@ -66,21 +63,21 @@ elseif vim.fn.has("wsl") == 1 then
     },
     cache_enabled = 0,
   }
-elseif vim.fn.executable("wl-copy") == 1 then
+elseif has_wayland and vim.fn.executable("wl-copy") == 1 then
   vim.g.clipboard = {
     name = "wl-clipboard",
     copy = { ["+"] = "wl-copy --type text/plain", ["*"] = "wl-copy --type text/plain" },
     paste = { ["+"] = "wl-paste --no-newline", ["*"] = "wl-paste --no-newline" },
     cache_enabled = 1,
   }
-elseif vim.fn.executable("xsel") == 1 then
+elseif has_display and vim.fn.executable("xsel") == 1 then
   vim.g.clipboard = {
     name = "xsel",
     copy = { ["+"] = "xsel --nodetach -i -b", ["*"] = "xsel --nodetach -i -p" },
     paste = { ["+"] = "xsel -o -b", ["*"] = "xsel -o -p" },
     cache_enabled = 1,
   }
-elseif vim.fn.executable("xclip") == 1 then
+elseif has_display and vim.fn.executable("xclip") == 1 then
   vim.g.clipboard = {
     name = "xclip",
     copy = { ["+"] = "xclip -quiet -i -selection clipboard", ["*"] = "xclip -quiet -i -selection primary" },
@@ -94,15 +91,13 @@ elseif vim.fn.executable("xclip") == 1 then
     },
     cache_enabled = 1,
   }
-else
-  local osc52_ok, osc52 = pcall(require, "vim.ui.clipboard.osc52")
-  if osc52_ok then
-    vim.g.clipboard = {
-      name = "OSC 52",
-      copy = { ["+"] = osc52.copy("+"), ["*"] = osc52.copy("*") },
-      paste = { ["+"] = osc52.paste("+"), ["*"] = osc52.paste("*") },
-    }
-  end
+elseif osc52_ok then
+  -- Fallback untuk Remote SSH / Headless Linux tanpa GUI Display: gunakan OSC 52
+  vim.g.clipboard = {
+    name = "OSC 52 (Remote SSH)",
+    copy = { ["+"] = osc52.copy("+"), ["*"] = osc52.copy("*") },
+    paste = { ["+"] = osc52.paste("+"), ["*"] = osc52.paste("*") },
+  }
 end
 
 -- Set clipboard option SETELAH g:clipboard didefinisikan di atas
