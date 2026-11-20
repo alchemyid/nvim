@@ -173,9 +173,10 @@ Di dalam chat buffer, Anda dapat memberikan instruksi langsung kepada AI agent u
     └── plugins/
         ├── colorscheme.lua       -- onedark.nvim (theme utama)
         ├── treesitter.lua        -- Built-in TreeSitter + tree-sitter-manager
-        ├── lsp.lua                -- native LSP + mason (untuk LSPDiagnostics)
+        ├── lsp.lua                -- native LSP + mason, 12 server, keymap LspAttach ala VSCode
+        ├── vscode-like.lua        -- conform, trouble, aerial, bufferline, grug-far, dap, persistence, todo-comments
+        ├── ai-cli.lua             -- claudecode.nvim (Claude Code IDE) + Gemini CLI (toggleterm)
         ├── nvim-tree.lua          -- NvimTree
-        ├── neo-tree.lua           -- Neo-tree (alternatif nvim-tree)
         ├── telescope.lua          -- Telescope
         ├── which-key.lua          -- WhichKey
         ├── dashboard.lua          -- Dashboard
@@ -183,17 +184,23 @@ Di dalam chat buffer, Anda dapat memberikan instruksi langsung kepada AI agent u
         ├── gitsigns.lua           -- GitSigns (pengganti modern GitGutter)
         ├── fugitive.lua           -- VimFugitive
         ├── diffview.lua           -- DiffView
-        ├── hop.lua                -- Hop
+        ├── editor-extra.lua       -- oil, nvim-ufo, treesitter-context, flash, vim-visual-multi, project.nvim
+        ├── sidekick.lua           -- sidekick.nvim (Copilot NES + terminal Gemini/Claude/Codex dll)
         ├── mini.lua               -- Mini.nvim (subset modul)
         ├── neotest.lua            -- Neotest
         ├── barbecue.lua           -- Barbecue
         ├── indent-blankline.lua   -- IndentBlankline
-        ├── indentmini.lua         -- indentmini (alternatif, nonaktif default)
         ├── illuminate.lua         -- vim-illuminate
         ├── terminal.lua           -- toggleterm.nvim (terminal terintegrasi, mirip VSCode)
-        ├── completion.lua         -- nvim-cmp (autocomplete engine + snippets & AI integration)
-        ├── copilot.lua            -- zbirenbaum/copilot.lua (GitHub Copilot ghost text auto-completion)
-        └── codecompanion.lua      -- codecompanion.nvim (AI chat & inline edit via Claude, Copilot, & Ollama)
+        ├── completion.lua         -- blink.cmp (autocomplete + snippets + sumber CodeCompanion)
+        ├── copilot.lua            -- Copilot via copilot-language-server + vim.lsp.inline_completion (GitHub Copilot ghost text auto-completion)
+        └── codecompanion.lua      -- codecompanion.nvim (opts + keymap; adapter & prompt dipisah ke lua/ai/)
+    └── ai/
+        ├── adapters.lua           -- adapter ACP (claude_code, gemini_cli, hermes) & HTTP (anthropic, copilot, ollama)
+        ├── prompts.lua            -- prompt library (review, fix, explain, docs, tests, refactor, beautify)
+        ├── local_config.lua       -- loader pengaturan per-mesin (default dari env var)
+        ├── local.example.lua      -- contoh; salin menjadi local.lua
+        └── local.lua              -- host SSH, IP Ollama, dll. (di-.gitignore, tidak masuk repo)
 ```
 
 Setiap file di `lua/plugins/` adalah satu spec `lazy.nvim` yang otomatis ter-load lewat
@@ -215,36 +222,75 @@ baru, tanpa perlu edit file lain.
 | GitSigns | ✅ Aktif | `gitsigns.lua` |
 | VimFugitive | ✅ Aktif | `fugitive.lua`, `<leader>gs` |
 | DiffView | ✅ Aktif | `diffview.lua`, `<leader>gd` |
-| Hop | ✅ Aktif | `hop.lua`, `<leader>hw/hl` |
-| Mini | ✅ Aktif | `mini.lua` (pairs, comment, surround, indentscope) |
-| Neo-tree | ⚪ Opsional | `neo-tree.lua`, `<leader>E` — alternatif NvimTree, pilih salah satu |
-| Neotest | ✅ Aktif | `neotest.lua`, `<leader>tn/tf/to/ts` (tambahkan adapter bahasa sendiri) |
+| Hop | ❌ Diganti | Digantikan flash.nvim (`<leader>hw/hl` tetap bekerja) |
+| Mini | ✅ Aktif | `mini.lua` (pairs, comment, surround, bufremove) |
+| Neo-tree | ❌ Dihapus | Duplikat NvimTree (bisa dikembalikan via git history) |
+| Neotest | ✅ Aktif | `neotest.lua`, `<leader>tn/tf/to/tS` (tambahkan adapter bahasa sendiri) |
 | Barbecue | ✅ Aktif | `barbecue.lua` |
 | IndentBlankline | ✅ Aktif | `indent-blankline.lua` |
 | vim-illuminate | ✅ Aktif | `illuminate.lua` |
-| indentmini | ⚪ Opsional | `indentmini.lua`, nonaktif default — alternatif indent-blankline |
+| indentmini | ❌ Dihapus | Duplikat indent-blankline |
 | codecompanion.nvim | ✅ Aktif | `codecompanion.lua`, AI chat sidebar + inline edit via Claude 3.7, GitHub Copilot, & Ollama lokal |
-| copilot.lua | ✅ Aktif | `copilot.lua`, GitHub Copilot ghost text auto-completion di buffer saat mengetik |
+| Copilot | ✅ Aktif | `copilot.lua`: copilot-language-server (Mason) + `vim.lsp.inline_completion` bawaan nvim 0.12. Menggantikan copilot.vim |
 | toggleterm.nvim | ✅ Aktif | `terminal.lua`, terminal terintegrasi dengan toggle shortcut mirip VSCode (`Ctrl+\``) |
-| nvim-cmp | ✅ Aktif | `completion.lua`, autocomplete engine untuk LSP, buffer, path, dan perintah AI chat |
+| nvim-cmp | ⚪ Diganti | Digantikan **blink.cmp** (`completion.lua`) — lebih cepat, sumber LSP/path/snippet/buffer/CodeCompanion |
+| claudecode.nvim | ✅ Baru | `ai-cli.lua`, integrasi IDE Claude Code (protokol sama dengan ekstensi VSCode) |
+| conform.nvim | ✅ Baru | Format on save (stylua, prettier, ruff, shfmt, dll) |
+| trouble.nvim + todo-comments | ✅ Baru | Panel Problems & daftar TODO |
+| aerial.nvim | ✅ Baru | Outline simbol |
+| bufferline.nvim | ✅ Baru | Tab editor |
+| grug-far.nvim | ✅ Baru | Search & Replace seluruh project |
+| nvim-dap (+ui, python, virtual-text) | ✅ Baru | Debugger |
+| persistence.nvim | ✅ Baru | Restore session per folder |
+| mason-tool-installer | ✅ Baru | Auto-install formatter/debugger |
+| sidekick.nvim | ✅ Baru | Copilot Next Edit Suggestions + terminal AI CLI (Gemini/Claude/Codex) berkonteks |
+| telescope-fzf-native | ✅ Baru | Fuzzy sorting native (C), `make` otomatis |
+| oil.nvim | ✅ Baru | Edit direktori seperti buffer |
+| nvim-ufo | ✅ Baru | Folding LSP/indent ala VSCode |
+| nvim-treesitter-context | ✅ Baru | Sticky scroll (konteks fungsi/class di atas) |
+| flash.nvim | ✅ Baru | Jump cepat + pilih node treesitter |
+| vim-visual-multi | ✅ Baru | Multi-cursor (Ctrl+n) |
+| project.nvim | ✅ Baru | Pindah project (Open Recent) |
 
 Yang ditandai "Opsional" sengaja dibuat sebagai alternatif berdampingan (bukan
 dijalankan bersamaan), karena fungsinya tumpang tindih dengan plugin lain yang sudah
 aktif (dua file explorer / dua indent-guide sekaligus biasanya cuma bikin bentrok
 keymap & visual). Tinggal aktifkan salah satu.
 
+## Pengaturan per-mesin (tidak masuk git)
+
+Host SSH Hermes, IP Ollama, dsb. dibaca dari `lua/ai/local.lua` (di-`.gitignore`). Di mesin baru:
+```bash
+cp lua/ai/local.example.lua lua/ai/local.lua   # lalu edit
+```
+Alternatif tanpa file: env var `OLLAMA_URL`, `HERMES_HOSTNAME`, `HERMES_SSH_KEY`, `HERMES_SSH_USER`, `HERMES_SSH_HOST`.
+
+## Tool eksternal yang dipakai
+
+| Tool | Fungsi | Terpasang via |
+|---|---|---|
+| `claude` | Claude Code CLI (`claudecode.nvim`) | sudah ada |
+| `gemini` | Gemini CLI | `npm i -g --prefix ~/.local @google/gemini-cli` |
+| `claude-code-acp` | Adapter ACP CodeCompanion | `npm i -g --prefix ~/.local @zed-industries/claude-code-acp` |
+| `rg`, `fd` | Backend Telescope | `cargo install ripgrep fd-find` |
+| `lazygit` | `<leader>tg` | `go install github.com/jesseduffield/lazygit@latest` |
+| `make`, `gcc` | Build telescope-fzf-native & parser treesitter | paket sistem |
+
+Pastikan `~/.local/bin` dan `~/.cargo/bin` ada di PATH (options.lua sudah menambahkannya untuk nvim).
+Server LSP, formatter, dan debug adapter di-install otomatis oleh Mason; cek dengan `:Mason`.
+
 ## Mengganti Style & Colorscheme
 
 Secara default template ini menggunakan **[vscode.nvim](https://github.com/Mofiqul/vscode.nvim)** (VS Code theme). Anda bisa mengonfigurasinya di [colorscheme.lua](file:///home/x/.config/nvim/lua/plugins/colorscheme.lua).
 
-Untuk berganti antara mode **VS Code Dark** dan **VS Code Light**, tekan shortcut **`<leader>ts`** secara langsung di dalam Neovim.
+Untuk berganti antara mode **VS Code Dark** dan **VS Code Light**, tekan shortcut **`<leader>tc`** secara langsung di dalam Neovim.
 
 Jika ingin kembali menggunakan **onedark.nvim**, cukup buka [colorscheme.lua](file:///home/x/.config/nvim/lua/plugins/colorscheme.lua), ubah `lazy = true` pada `vscode.nvim` dan `lazy = false` pada `onedark.nvim`, lalu aktifkan pemanggilan `require("onedark").load()` di konfigurasinya.
 
 ## Menambah LSP server / test adapter
 
-- LSP: tambahkan nama server di `ensure_installed` (`lsp.lua`) lalu tambahkan
-  `lspconfig.<server>.setup({...})`.
+- LSP: tambahkan satu entri di tabel `servers` pada `lsp.lua` (nama server lspconfig, mis. `clangd = {}`). Mason meng-install dan `vim.lsp.enable` mengaktifkannya otomatis.
+- Formatter: tambahkan di `formatters_by_ft` (`vscode-like.lua`) dan nama paketnya di `mason-tool-installer`.
 - Neotest: install adapter yang sesuai (mis. `nvim-neotest/neotest-python`) sebagai
   dependency di `neotest.lua`, lalu daftarkan di tabel `adapters`.
 
@@ -264,7 +310,7 @@ Tombol **Leader** pada konfigurasi ini diset ke tombol **`Space`** (Spasi).
 | `Ctrl + l` | `Ctrl + w` lalu `l` | Pindah fokus ke window sebelah kanan |
 | `Ctrl + j` | `Ctrl + w` lalu `j` | Pindah fokus ke window bawah |
 | `Ctrl + k` | `Ctrl + w` lalu `k` | Pindah fokus ke window atas |
-| `Leader + ts` | Theme toggle | Berpindah antara tema VS Code Dark dan Light |
+| `Leader + tc` | Theme toggle | Berpindah antara tema VS Code Dark dan Light |
 | `Tab` | `>gv` (Visual Mode) | Indent block kode (geser kanan) & pertahankan seleksi |
 | `Shift + Tab` | `<gv` (Visual Mode) | Outdent block kode (geser kiri) & pertahankan seleksi |
 
@@ -272,7 +318,6 @@ Tombol **Leader** pada konfigurasi ini diset ke tombol **`Space`** (Spasi).
 | Shortcut | Plugin | Deskripsi |
 |---|---|---|
 | `Leader + e` | NvimTree | Toggle sidebar file explorer |
-| `Leader + E` | Neo-tree | Toggle Neo-tree (alternatif opsional) |
 | `Leader + ff` | Telescope | Cari file berdasarkan nama (`find_files`) |
 | `Leader + fg` | Telescope | Cari kata/teks di seluruh project (`live_grep`) |
 | `Leader + fb` | Telescope | Cari daftar buffer yang sedang terbuka |
@@ -296,21 +341,35 @@ Tombol **Leader** pada konfigurasi ini diset ke tombol **`Space`** (Spasi).
 > | `q` | Tutup sidebar file explorer |
 
 #### LSP (Language Server Protocol)
-| Shortcut | Perintah | Deskripsi |
-|---|---|---|
-| `gd` | `vim.lsp.buf.definition` | Lompat ke lokasi definisi fungsi/variabel |
-| `K` | `vim.lsp.buf.hover` | Tampilkan pop-up dokumentasi/tipe di bawah kursor |
-| `Leader + rn` | `vim.lsp.buf.rename` | Rename nama simbol di seluruh project |
-| `Leader + ca` | `vim.lsp.buf.code_action` | Tampilkan menu saran perbaikan (code action) |
-| `Leader + cf` | `vim.lsp.buf.format` | Format file / kode terpilih (LSP auto-spacing & styling) |
-| `[d` | `vim.diagnostic.goto_prev` | Lompat ke error/diagnostic sebelumnya |
-| `]d` | `vim.diagnostic.goto_next` | Lompat ke error/diagnostic berikutnya |
+Server terpasang otomatis via Mason: `lua_ls, pyright, ts_ls, html, cssls, jsonls, yamlls, bashls, gopls, rust_analyzer, marksman, taplo`.
+Keymap hanya aktif di buffer yang punya LSP (autocmd `LspAttach`).
 
-#### Hop (Navigasi Cepat Teks)
-| Shortcut | Perintah | Deskripsi |
+| Shortcut | Setara VSCode | Deskripsi |
 |---|---|---|
-| `Leader + hw` | `HopWord` | Lompat cepat ke kata tertentu di dalam buffer |
-| `Leader + hl` | `HopLine` | Lompat cepat ke baris tertentu |
+| `gd` / `F12` | F12 | Go to definition (juga `Ctrl+Klik`) |
+| `gD` | | Go to declaration |
+| `gr` / `Shift+F12` | Shift+F12 | Find references (Telescope) |
+| `gi` | Ctrl+F12 | Go to implementations |
+| `gy` | | Go to type definition |
+| `K` | Hover | Dokumentasi/tipe di bawah kursor |
+| `Ctrl + s` (Insert) | Ctrl+Shift+Space | Signature help |
+| `F2` / `Leader + rn` | F2 | Rename symbol |
+| `Leader + ca` | Ctrl+. | Code action |
+| `Leader + cs` | Ctrl+Shift+O | Document symbols |
+| `Leader + cS` | Ctrl+T | Workspace symbols |
+| `Leader + cd` | | Diagnostic di baris ini (float) |
+| `Leader + ci` | | Toggle inlay hints |
+| `Leader + cf` | Shift+Alt+F | Format (conform → fallback LSP). Juga otomatis saat save |
+| `[d` / `]d` | F8 | Diagnostic sebelumnya / berikutnya |
+
+#### Navigasi Cepat (flash.nvim)
+| Shortcut | Mode | Deskripsi |
+|---|---|---|
+| `Leader + j` | n/x/o | Flash jump — ketik 1-2 huruf, lalu tekan label |
+| `Leader + J` | n/x/o | Pilih node treesitter (ulang untuk memperluas) |
+| `Leader + hw` | n | Jump ke awal kata |
+| `Leader + hl` | n | Jump ke baris |
+| `r` | o (operator-pending) | Remote flash (mis. `yr` lalu pilih target) |
 
 #### Git Integration
 | Shortcut | Plugin | Deskripsi |
@@ -318,6 +377,13 @@ Tombol **Leader** pada konfigurasi ini diset ke tombol **`Space`** (Spasi).
 | `Leader + gs` | Fugitive | Buka panel interaktif Git status (`:Git`) |
 | `Leader + gd` | Diffview | Buka tampilan Git diff seluruh project |
 | `Leader + gh` | Diffview | Buka histori commit & diff file saat ini |
+| `Leader + gb` / `gc` / `gS` | Telescope | Git branches / commits / status |
+| `]h` / `[h` | Gitsigns | Hunk berikutnya / sebelumnya |
+| `Leader + hs` / `hr` | Gitsigns | Stage / reset hunk (juga di Visual mode untuk seleksi) |
+| `Leader + hS` / `hu` | Gitsigns | Stage seluruh buffer / undo stage hunk |
+| `Leader + hp` | Gitsigns | Preview hunk |
+| `Leader + hb` / `hB` | Gitsigns | Blame baris (popup) / toggle blame inline (GitLens-style, aktif default) |
+| `Leader + hd` | Gitsigns | Diff file terhadap index |
 
 #### Testing (Neotest)
 | Shortcut | Perintah | Deskripsi |
@@ -325,7 +391,7 @@ Tombol **Leader** pada konfigurasi ini diset ke tombol **`Space`** (Spasi).
 | `Leader + tn` | `run.run()` | Jalankan unit test terdekat dari kursor |
 | `Leader + tf` | `run.run(file)` | Jalankan semua test di file ini |
 | `Leader + to` | `output.open()` | Buka window hasil/output eksekusi test |
-| `Leader + ts` | `summary.toggle()` | Toggle panel ringkasan test |
+| `Leader + tS` | `summary.toggle()` | Toggle panel ringkasan test |
 
 #### Mini.nvim (Editing Utilities)
 | Shortcut | Modul | Deskripsi |
@@ -335,6 +401,131 @@ Tombol **Leader** pada konfigurasi ini diset ke tombol **`Space`** (Spasi).
 | `sa` | Mini.surround | Tambahkan tanda kurung/kutip mengelilingi teks |
 | `sd` | Mini.surround | Hapus tanda kurung/kutip pengeliling |
 | `sr` | Mini.surround | Ganti tanda kurung/kutip pengeliling |
+
+#### Fitur Setara VSCode (vscode-like.lua, keymaps.lua)
+
+**Editor & Navigasi**
+| Shortcut | Setara VSCode | Deskripsi |
+|---|---|---|
+| `Ctrl + s` | Ctrl+S | Simpan (Normal/Insert/Visual) |
+| `Ctrl + p` | Ctrl+P | Quick open file |
+| `Leader + p` | Ctrl+Shift+P | Command palette (Telescope commands) |
+| `Leader + fr` | | File terbaru (oldfiles) |
+| `Leader + fw` | | Grep kata di bawah kursor |
+| `Leader + fs` | Ctrl+F | Cari di file aktif (fuzzy) |
+| `Leader + fd` | | Diagnostics (Telescope) |
+| `Leader + fk` | Ctrl+K Ctrl+S | Daftar keymap |
+| `Shift + l` / `Shift + h` | Ctrl+PageDown/Up | Tab berikutnya / sebelumnya |
+| `Leader + bd` | Ctrl+W | Tutup tab (window tidak ikut tertutup) |
+| `Leader + bp` | | Pin tab |
+| `Leader + bo` | | Tutup tab lain |
+| `Alt + j` / `Alt + k` | Alt+↓/↑ | Pindah baris/seleksi ke bawah/atas |
+| `Alt + Shift + j` | Shift+Alt+↓ | Duplikat baris |
+| `Ctrl + /` | Ctrl+/ | Toggle komentar (mini.comment). Di beberapa terminal terkirim sebagai `Ctrl+_` — keduanya sudah dipetakan |
+| `Ctrl + a` | Ctrl+A | Pilih semua |
+| `Ctrl + c` (Visual) / `Leader + y` / `Leader + Y` | Ctrl+C | Copy ke clipboard sistem |
+| `Leader + \` / `Leader + -` | Ctrl+\ | Split kanan / bawah |
+| `Leader + o` | Outline | Toggle outline simbol (aerial) |
+
+**Problems, Search & Session**
+| Shortcut | Setara VSCode | Deskripsi |
+|---|---|---|
+| `Leader + xx` | Ctrl+Shift+M | Problems seluruh workspace (Trouble) |
+| `Leader + xb` | | Problems buffer ini |
+| `Leader + xt` | | Daftar TODO/FIXME/HACK |
+| `Leader + xq` | | Quickfix list |
+| `Leader + sr` | Ctrl+Shift+H | Search & Replace seluruh project (grug-far; bisa dengan regex & preview) |
+| `Leader + sw` | | Replace kata di bawah kursor |
+| `Leader + qs` / `ql` | | Restore session folder ini / session terakhir |
+
+**Debugger (nvim-dap)** — python (debugpy) dan JS/TS (js-debug) di-install otomatis
+| Shortcut | Setara VSCode | Deskripsi |
+|---|---|---|
+| `F5` | F5 | Start / continue |
+| `Shift + F5` | Shift+F5 | Stop |
+| `F9` | F9 | Toggle breakpoint |
+| `Leader + db` | | Breakpoint bersyarat |
+| `F10` / `F11` / `Shift + F11` | F10/F11/Shift+F11 | Step over / into / out |
+| `Leader + du` | | Toggle debug UI |
+| `Leader + de` | | Evaluasi ekspresi / seleksi |
+
+> Format-on-save aktif untuk lua, python, js/ts, json, yaml, md, html, css, sh, go, rust.
+> Matikan/nyalakan format-on-save dengan `:FormatToggle`.
+> `F`-key tertentu (mis. `Shift+F5`, `Shift+F12`) bisa tidak terkirim oleh sebagian emulator terminal; gunakan alternatif `<leader>` bila ada.
+
+#### Integrasi Claude Code & Gemini CLI (ai-cli.lua)
+
+**Claude Code** — `coder/claudecode.nvim`. Nvim menjalankan server WebSocket lokal; CLI `claude` yang dijalankan dari dalam nvim otomatis terhubung (sama seperti ekstensi VSCode):
+- Claude tahu file & seleksi yang sedang aktif.
+- Edit dari Claude muncul sebagai diff di nvim, Anda accept/deny.
+- File yang berubah di disk otomatis dimuat ulang (`autoread` + `checktime`).
+- Bisa juga: jalankan `claude` di terminal mana pun lalu `/ide` untuk terhubung ke nvim.
+
+| Shortcut | Mode | Deskripsi |
+|---|---|---|
+| `Leader + Cc` | Normal | Toggle panel Claude (kanan, 40%) |
+| `Leader + Cf` | Normal | Fokus ke panel Claude |
+| `Leader + Cr` | Normal | Resume sesi (pilih dari daftar) |
+| `Leader + CC` | Normal | Continue sesi terakhir |
+| `Leader + Cm` | Normal | Pilih model Claude |
+| `Leader + Cb` | Normal | Tambah buffer aktif ke konteks (`@file`) |
+| `Leader + Cs` | Visual | Kirim seleksi ke Claude |
+| `Leader + Cs` | NvimTree | Tambah file di tree ke konteks |
+| `Leader + Ca` / `Cd` | Normal | Accept / deny diff dari Claude |
+
+**Gemini CLI & AI CLI lain (sidekick.nvim)** — `gemini` sudah terpasang di `~/.local/bin` (jalankan sekali `gemini` untuk login). Sidekick menjalankan CLI di split kanan dan bisa mengirim konteks otomatis (`{file}`, `{this}`, `{selection}`, `{diagnostics}`); file yang diubah CLI ter-reload otomatis.
+| Shortcut | Mode | Deskripsi |
+|---|---|---|
+| `Leader + Gg` | Normal | Toggle Gemini |
+| `Leader + Gc` | Normal | Toggle Claude via sidekick (alternatif `Leader + Cc`) |
+| `Leader + Gs` | Normal | Pilih AI CLI yang terpasang (claude, gemini, codex, dst.) |
+| `Leader + Gt` | n / Visual | Kirim posisi kursor / seleksi (+ nama file) |
+| `Leader + Gf` | Normal | Kirim seluruh file |
+| `Leader + Gv` | Visual | Kirim seleksi |
+| `Leader + Gx` | Normal | Kirim diagnostics file ke CLI |
+| `Leader + Gp` | n / Visual | Prompt library (explain, fix, review, tests, dll.) |
+| `Leader + Gd` | Normal | Detach/tutup sesi CLI |
+| `Ctrl + .` | n/t/i/x | Fokus ke jendela AI CLI dari mana saja |
+
+**Next Edit Suggestions (NES, Copilot)** — Copilot menyarankan edit multi-baris di tempat lain di file (bukan hanya di kursor), muncul sebagai diff inline.
+| Shortcut | Deskripsi |
+|---|---|
+| `Tab` | Lompat ke / terapkan suggestion berikutnya (jika ada; jika tidak, Tab normal) |
+| `Leader + Kn` | Toggle NES |
+| `Leader + Ku` | Minta NES sekarang |
+| `Leader + Kc` | Hapus suggestion |
+
+**CodeCompanion ACP**: `Leader + as` kini memuat adapter **Claude Code (ACP)** dan **Gemini CLI (ACP)**. Claude ACP butuh `npm i -g @zed-industries/claude-code-acp`.
+
+**Kapan pakai yang mana?**
+- Task agentik besar (refactor multi-file, jalankan test): `Leader + Cc` (Claude Code native).
+- Tanya cepat/inline edit dengan diff `ga`/`gr`: CodeCompanion (`Leader + ai`, `Leader + ac`).
+- Gemini untuk konteks sangat panjang / second opinion: `Leader + Gg`.
+
+#### Autocomplete (blink.cmp)
+| Shortcut | Deskripsi |
+|---|---|
+| `Tab` / `Shift+Tab` | Pilih item berikutnya/sebelumnya; lompat placeholder snippet; jika tidak ada → terapkan Copilot NES; lalu Tab biasa |
+| `Enter` | Terima item terpilih |
+| `Ctrl + Space` | Munculkan menu / toggle dokumentasi |
+| `Ctrl + e` | Tutup menu |
+| `Ctrl + n` / `Ctrl + p` | Item berikutnya / sebelumnya |
+| `Ctrl + b` / `Ctrl + f` | Scroll dokumentasi |
+
+#### Editor Lanjutan (editor-extra.lua)
+| Shortcut | Plugin | Deskripsi |
+|---|---|---|
+| `Leader + E` | oil | File manager float; edit nama/hapus/pindah sebagai teks lalu `:w` |
+| `-` | oil | Buka direktori induk file ini |
+| `zR` / `zM` | ufo | Buka / tutup semua fold |
+| `zp` | ufo | Peek isi fold |
+| `[C` | treesitter-context | Lompat ke fungsi/class induk (header-nya tampil sticky di atas) |
+| `Ctrl + n` | vim-visual-multi | Pilih kata di bawah kursor; tekan lagi untuk tambah kursor berikutnya (seperti Ctrl+D VSCode) |
+| `Ctrl + ↓` / `Ctrl + ↑` | vim-visual-multi | Tambah kursor ke bawah / atas |
+| `Leader + fp` | project.nvim | Pindah project (Open Recent) |
+
+> Di mode multi-cursor: `n`/`N` kemunculan berikutnya/sebelumnya, `q` lewati, `Q` hapus kursor, `Esc` keluar.
+> Search Telescope sekarang memakai `ripgrep` (`~/.cargo/bin/rg`) dan `fd` jika ada di PATH, plus fzf-native untuk sorting.
 
 #### Terminal Terintegrasi (toggleterm.nvim)
 | Shortcut | Mode | Deskripsi |
@@ -354,7 +545,7 @@ Tombol **Leader** pada konfigurasi ini diset ke tombol **`Space`** (Spasi).
 
 #### AI Coding Assistant & Autocomplete (codecompanion.nvim + GitHub Copilot, Ollama, & Hermes)
 
-> Plugin: [`codecompanion.nvim`](https://github.com/olimorris/codecompanion.nvim) (Chat & Inline Edit) & [`copilot.lua`](https://github.com/zbirenbaum/copilot.lua) (Ghost Text Autocomplete).
+> Plugin: [`codecompanion.nvim`](https://github.com/olimorris/codecompanion.nvim) (Chat & Inline Edit) & Copilot LSP (Ghost Text via `vim.lsp.inline_completion`).
 > **Pilihan Adapter Chat / Inline Edit:**
 > - **GitHub Copilot (Cloud) [DEFAULT]**: Model utama bawaan (`gpt-4o` / Copilot API). Cukup jalankan `:Copilot auth` untuk login.
 > - **Claude 3.7 (Anthropic)**: Model opsional dengan kemampuan penalaran & agentic tool calling. Perlu `export ANTHROPIC_API_KEY="sk-ant-..."`.
@@ -380,15 +571,17 @@ Tombol **Leader** pada konfigurasi ini diset ke tombol **`Space`** (Spasi).
 | `Leader + aD` | Normal / Visual | Tambah semua file dalam direktori ke chat (akhiri dengan `!` untuk rekursif) |
 | `Leader + ag` | Normal / Visual | Tambah laporan arsitektur Graphify (`GRAPH_REPORT.md`) ke chat |
 
-**GitHub Copilot Ghost Text (copilot.lua — Saran Kode Samar Saat Mengetik)**
+**GitHub Copilot Ghost Text (inline completion bawaan Neovim 0.12 + copilot-language-server)**
+
+Login sekali: `:LspCopilotSignIn`. Cek status: `:checkhealth vim.lsp`.
 | Shortcut | Mode | Deskripsi |
 |---|---|---|
-| `Alt + l` | Insert | **Accept** seluruh saran kode samar (*ghost text*) |
-| `Alt + w` | Insert | **Accept 1 kata** berikutnya dari saran |
-| `Alt + a` | Insert | **Accept 1 baris** berikutnya dari saran |
-| `Alt + ]` | Insert | Lihat saran alternatif **berikutnya** |
-| `Alt + [` | Insert | Lihat saran alternatif **sebelumnya** |
-| `Ctrl + ]` | Insert | Batalkan/tutup saran samar |
+| `Alt + l` | Insert | **Accept** saran kode samar (*ghost text*) |
+| `Alt + ]` | Insert | Saran alternatif **berikutnya** |
+| `Alt + [` | Insert | Saran alternatif **sebelumnya** |
+| `Ctrl + ]` | Insert | Tutup/reset saran |
+
+> Accept per-kata / per-baris (`Alt+w`, `Alt+a`) dari copilot.vim tidak ada di API bawaan nvim; gunakan `Alt+l` lalu edit.
 
 **Shortcut Aksi Koding (Bekerja pada seluruh file aktif atau kode terseleksi)**
 | Shortcut | Mode | Deskripsi |
