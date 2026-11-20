@@ -1,72 +1,56 @@
 -- lua/plugins/completion.lua
--- Autocomplete engine (nvim-cmp) with LSP, snippets, and CodeCompanion integrations.
+-- Autocomplete engine: blink.cmp (cepat, binary Rust) + LSP, snippets, path, buffer, CodeCompanion.
+-- Tab: snippet jump -> Copilot NES (sidekick) -> pilih item berikutnya.
 
 return {
-    {
-        "hrsh7th/nvim-cmp",
-        event = "InsertEnter",
-        dependencies = {
-            "hrsh7th/cmp-nvim-lsp",
-            "hrsh7th/cmp-buffer",
-            "hrsh7th/cmp-path",
-            "hrsh7th/cmp-cmdline",
-            "L3MON4D3/LuaSnip",
-            "saadparwaiz1/cmp_luasnip",
+  {
+    "saghen/blink.cmp",
+    version = "1.*", -- release tag => binary prebuilt otomatis diunduh
+    event = { "InsertEnter", "CmdlineEnter" },
+    dependencies = { "L3MON4D3/LuaSnip", "rafamadriz/friendly-snippets" },
+    opts = {
+      keymap = {
+        preset = "none",
+        ["<C-Space>"] = { "show", "show_documentation", "hide_documentation" },
+        ["<C-e>"] = { "hide", "fallback" },
+        ["<CR>"] = { "accept", "fallback" },
+        ["<Tab>"] = {
+          "select_next",
+          "snippet_forward",
+          function() -- sidekick: Next Edit Suggestion (Copilot)
+            local ok, sk = pcall(require, "sidekick")
+            return ok and sk.nes_jump_or_apply() or false
+          end,
+          "fallback",
         },
-        config = function()
-            local cmp = require("cmp")
-            local luasnip = require("luasnip")
-
-            cmp.setup({
-                snippet = {
-                    expand = function(args)
-                        luasnip.lsp_expand(args.body)
-                    end,
-                },
-                mapping = cmp.mapping.preset.insert({
-                    ["<C-b>"] = cmp.mapping.scroll_docs(-4),
-                    ["<C-f>"] = cmp.mapping.scroll_docs(4),
-                    ["<C-Space>"] = cmp.mapping.complete(),
-                    ["<C-e>"] = cmp.mapping.abort(),
-                    ["<CR>"] = cmp.mapping.confirm({ select = true }), -- Accept currently selected item
-                    ["<Tab>"] = cmp.mapping(function(fallback)
-                        if cmp.visible() then
-                            cmp.select_next_item()
-                        elseif luasnip.expand_or_jumpable() then
-                            luasnip.expand_or_jump()
-                        else
-                            fallback()
-                        end
-                    end, { "i", "s" }),
-                    ["<S-Tab>"] = cmp.mapping(function(fallback)
-                        if cmp.visible() then
-                            cmp.select_prev_item()
-                        elseif luasnip.jumpable(-1) then
-                            luasnip.jump(-1)
-                        else
-                            fallback()
-                        end
-                    end, { "i", "s" }),
-                }),
-                sources = cmp.config.sources({
-                    { name = "nvim_lsp" },
-                    { name = "luasnip" },
-                    { name = "codecompanion" }, -- CodeCompanion slash commands/variables/tools
-                }, {
-                    { name = "buffer" },
-                    { name = "path" },
-                }),
-            })
-
-            -- Use cmdline & path source for ':'
-            cmp.setup.cmdline(":", {
-                mapping = cmp.mapping.preset.cmdline(),
-                sources = cmp.config.sources({
-                    { name = "path" }
-                }, {
-                    { name = "cmdline" }
-                })
-            })
-        end,
-    }
+        ["<S-Tab>"] = { "select_prev", "snippet_backward", "fallback" },
+        ["<C-b>"] = { "scroll_documentation_up", "fallback" },
+        ["<C-f>"] = { "scroll_documentation_down", "fallback" },
+        ["<C-n>"] = { "select_next", "fallback" },
+        ["<C-p>"] = { "select_prev", "fallback" },
+      },
+      completion = {
+        list = { selection = { preselect = true, auto_insert = false } },
+        documentation = { auto_show = true, auto_show_delay_ms = 250, window = { border = "rounded" } },
+        menu = { border = "rounded" },
+        ghost_text = { enabled = false }, -- ghost text dipegang Copilot
+      },
+      signature = { enabled = true, window = { border = "rounded" } },
+      snippets = { preset = "luasnip" },
+      sources = {
+        default = { "lsp", "path", "snippets", "buffer" },
+        per_filetype = {
+          codecompanion = { "codecompanion" },
+        },
+        providers = {
+          codecompanion = {
+            name = "CodeCompanion",
+            module = "codecompanion.providers.completion.blink",
+          },
+        },
+      },
+      cmdline = { enabled = true },
+      fuzzy = { implementation = "prefer_rust_with_warning" },
+    },
+  },
 }
