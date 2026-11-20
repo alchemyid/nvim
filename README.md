@@ -1,5 +1,8 @@
 # Neovim Config Template — onedark.nvim
 
+> 📘 **Baru memakai config ini? Mulai dari [PANDUAN.md](PANDUAN.md)** — setup awal, cheat sheet, dan cara pakai
+> Claude / Gemini / Copilot langkah demi langkah. README ini adalah referensi lengkap.
+
 Template konfigurasi Neovim (Lua, plugin manager [lazy.nvim](https://github.com/folke/lazy.nvim))
 dengan colorscheme [onedark.nvim](https://github.com/navarasu/onedark.nvim), lengkap dengan
 semua plugin yang secara eksplisit disebutkan "Supported" di README onedark.nvim, sudah
@@ -453,7 +456,9 @@ Keymap hanya aktif di buffer yang punya LSP (autocmd `LspAttach`).
 > Matikan/nyalakan format-on-save dengan `:FormatToggle`.
 > `F`-key tertentu (mis. `Shift+F5`, `Shift+F12`) bisa tidak terkirim oleh sebagian emulator terminal; gunakan alternatif `<leader>` bila ada.
 
-#### Integrasi Claude Code & Gemini CLI (ai-cli.lua)
+#### Integrasi Claude Code & Gemini CLI (ai-cli.lua, sidekick.lua)
+
+> Sesi AI CLI (sidekick) berjalan di **tmux**, jadi tetap hidup saat panel ditutup atau nvim keluar, dan tersambung lagi saat dibuka. Detail & cara pakai: [PANDUAN.md §4](PANDUAN.md).
 
 **Claude Code** — `coder/claudecode.nvim`. Nvim menjalankan server WebSocket lokal; CLI `claude` yang dijalankan dari dalam nvim otomatis terhubung (sama seperti ekstensi VSCode):
 - Claude tahu file & seleksi yang sedang aktif.

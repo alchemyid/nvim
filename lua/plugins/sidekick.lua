@@ -11,6 +11,8 @@ return {
     nes = { enabled = true },
     cli = {
       watch = true, -- reload otomatis file yang diubah CLI agent
+      -- Sesi CLI hidup di tmux: tetap jalan walau panel ditutup / nvim keluar, lalu di-attach lagi
+      mux = { backend = "tmux", enabled = true },
       win = { layout = "right", split = { width = 80 } },
       tools = {
         gemini = { cmd = { "gemini" } },
