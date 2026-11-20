@@ -105,3 +105,29 @@ opt.clipboard = "unnamedplus"
 
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
+
+-- ── Integrasi CLI agent (Claude/Gemini mengedit file di luar nvim) ─────────
+opt.autoread = true
+opt.confirm = true -- tanya dulu saat quit dengan perubahan belum disimpan
+opt.completeopt = { "menu", "menuone", "noselect" }
+opt.sessionoptions = { "buffers", "curdir", "tabpages", "winsize", "help", "globals", "skiprtp" }
+opt.splitkeep = "screen"
+opt.fillchars:append({ eob = " " })
+
+vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter", "CursorHold", "TermClose", "TermLeave" }, {
+  group = vim.api.nvim_create_augroup("UserAutoReload", { clear = true }),
+  callback = function()
+    if vim.fn.mode() ~= "c" and vim.bo.buftype == "" then
+      vim.cmd("checktime")
+    end
+  end,
+  desc = "Reload file yang diubah agent eksternal",
+})
+vim.api.nvim_create_autocmd("FileChangedShellPost", {
+  callback = function()
+    vim.notify("File dimuat ulang: perubahan dari luar nvim", vim.log.levels.INFO)
+  end,
+})
+vim.api.nvim_create_autocmd("TextYankPost", {
+  callback = function() vim.hl.on_yank({ timeout = 150 }) end,
+})

@@ -1,17 +1,46 @@
 -- lua/plugins/lsp.lua
--- Native LSP + Mason. onedark.nvim styles LSP diagnostics out of the box
--- (see `diagnostics` table in colorscheme.lua) once diagnostics are enabled here.
+-- Native LSP (nvim 0.11+ API) + Mason. Banyak bahasa terpasang otomatis, mirip VSCode.
+
+local servers = {
+  lua_ls = {
+    settings = { Lua = { diagnostics = { globals = { "vim" } }, hint = { enable = true } } },
+  },
+  pyright = {}, -- settings python path diisi dinamis di bawah
+  ts_ls = {},
+  html = {},
+  cssls = {},
+  jsonls = {},
+  yamlls = {},
+  bashls = {},
+  gopls = {},
+  rust_analyzer = {},
+  marksman = {},
+  copilot = {}, -- diaktifkan di copilot.lua (inline completion + sidekick NES)
+  taplo = {},
+}
+
+local function get_python_path()
+  if vim.env.VIRTUAL_ENV then
+    return vim.env.VIRTUAL_ENV .. "/bin/python"
+  end
+  local cwd = vim.fn.getcwd()
+  for _, dir in ipairs({ ".venv", "venv", "pyenv", "env" }) do
+    local p = cwd .. "/" .. dir .. "/bin/python"
+    if vim.fn.executable(p) == 1 then
+      return p
+    end
+  end
+  return "python3"
+end
 
 return {
-  {
-    "williamboman/mason.nvim",
-    config = true,
-  },
+  { "williamboman/mason.nvim", opts = {} },
   {
     "williamboman/mason-lspconfig.nvim",
     dependencies = { "mason.nvim" },
     opts = {
-      ensure_installed = { "lua_ls", "pyright" }, -- add servers you need, e.g. "pyright", "tsserver"
+      ensure_installed = vim.tbl_keys(servers), -- termasuk copilot (copilot-language-server)
+      automatic_enable = false, -- kita enable manual di bawah supaya config per-server terpakai
     },
   },
   {
@@ -20,90 +49,79 @@ return {
     dependencies = { "mason-lspconfig.nvim" },
     config = function()
       vim.diagnostic.config({
-        virtual_text = true,
+        virtual_text = { spacing = 2, prefix = "●" },
         signs = true,
         underline = true,
         update_in_insert = false,
         severity_sort = true,
+        float = { border = "rounded", source = true },
       })
 
       local capabilities = vim.lsp.protocol.make_client_capabilities()
-      local ok, cmp_lsp = pcall(require, "cmp_nvim_lsp")
+      local ok, blink = pcall(require, "blink.cmp")
       if ok then
-        capabilities = vim.tbl_deep_extend("force", capabilities, cmp_lsp.default_capabilities())
+        capabilities = blink.get_lsp_capabilities(capabilities)
+      end
+      capabilities.textDocument.foldingRange = { dynamicRegistration = false, lineFoldingOnly = true } -- nvim-ufo
+
+      servers.pyright.settings = {
+        python = {
+          pythonPath = get_python_path(),
+          analysis = { autoSearchPaths = true, useLibraryCodeForTypes = true, diagnosticMode = "workspace" },
+        },
+      }
+
+      for name, cfg in pairs(servers) do
+        if name == "copilot" then goto continue end
+        vim.lsp.config(name, vim.tbl_deep_extend("force", { capabilities = capabilities }, cfg))
+        vim.lsp.enable(name)
+        ::continue::
       end
 
-      -- Lua configuration
-      vim.lsp.config("lua_ls", {
-        capabilities = capabilities,
-        settings = {
-          Lua = {
-            diagnostics = { globals = { "vim" } },
-          },
-        },
-      })
-
-      vim.lsp.enable("lua_ls")
-
-      -- Python (pyright) configuration with virtualenv auto-detection
-      local function get_python_path()
-        -- 1. Check for active virtualenv in the terminal session
-        if vim.env.VIRTUAL_ENV then
-          return vim.env.VIRTUAL_ENV .. "/bin/python"
-        end
-
-        -- 2. Check for local .venv, venv, pyenv, or env folders in the current workspace directory
-        local cwd = vim.fn.getcwd()
-        local paths = {
-          cwd .. "/.venv/bin/python",
-          cwd .. "/venv/bin/python",
-          cwd .. "/pyenv/bin/python",
-          cwd .. "/env/bin/python",
-        }
-        for _, path in ipairs(paths) do
-          if vim.fn.executable(path) == 1 then
-            return path
+      -- Keymap hanya aktif di buffer yang punya LSP (gaya VSCode)
+      vim.api.nvim_create_autocmd("LspAttach", {
+        group = vim.api.nvim_create_augroup("UserLspAttach", { clear = true }),
+        callback = function(ev)
+          local function map(mode, lhs, rhs, desc)
+            vim.keymap.set(mode, lhs, rhs, { buffer = ev.buf, desc = desc })
           end
-        end
+          local tb = function(fn) return function() require("telescope.builtin")[fn]() end end
 
-        -- 3. Fallback to default python3
-        return "python3"
-      end
+          map("n", "gd", vim.lsp.buf.definition, "Go to definition")        -- F12
+          map("n", "<F12>", vim.lsp.buf.definition, "Go to definition")
+          map("n", "gD", vim.lsp.buf.declaration, "Go to declaration")
+          map("n", "gr", tb("lsp_references"), "References")                -- Shift+F12
+          map("n", "<S-F12>", tb("lsp_references"), "References")
+          map("n", "gi", tb("lsp_implementations"), "Implementations")
+          map("n", "gy", tb("lsp_type_definitions"), "Type definition")
+          map("n", "K", vim.lsp.buf.hover, "Hover docs")
+          map("i", "<C-s>", vim.lsp.buf.signature_help, "Signature help")
+          map("n", "<F2>", vim.lsp.buf.rename, "Rename symbol")             -- F2
+          map("n", "<leader>rn", vim.lsp.buf.rename, "Rename symbol")
+          map({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, "Code action") -- Ctrl+.
+          map("n", "<leader>cs", tb("lsp_document_symbols"), "Document symbols")  -- Ctrl+Shift+O
+          map("n", "<leader>cS", tb("lsp_dynamic_workspace_symbols"), "Workspace symbols") -- Ctrl+T
+          map("n", "<leader>cd", vim.diagnostic.open_float, "Line diagnostics")
+          map("n", "[d", function() vim.diagnostic.jump({ count = -1, float = true }) end, "Prev diagnostic")
+          map("n", "]d", function() vim.diagnostic.jump({ count = 1, float = true }) end, "Next diagnostic")
 
-      vim.lsp.config("pyright", {
-        capabilities = capabilities,
-        settings = {
-          python = {
-            pythonPath = get_python_path(),
-            analysis = {
-              autoSearchPaths = true,
-              useLibraryCodeForTypes = true,
-              diagnosticMode = "workspace",
-            },
-          },
-        },
+          local client = vim.lsp.get_client_by_id(ev.data.client_id)
+          if client and client:supports_method("textDocument/inlayHint") then
+            map("n", "<leader>ci", function()
+              vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({ bufnr = ev.buf }), { bufnr = ev.buf })
+            end, "Toggle inlay hints")
+          end
+        end,
       })
 
-      vim.lsp.enable("pyright")
-
-      vim.keymap.set("n", "gd", vim.lsp.buf.definition, { desc = "Go to definition" })
-      vim.keymap.set("n", "K", vim.lsp.buf.hover, { desc = "Hover docs" })
-      vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, { desc = "Rename symbol" })
-      vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, { desc = "Code action" })
-      vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, { desc = "Prev diagnostic" })
-      vim.keymap.set("n", "]d", vim.diagnostic.goto_next, { desc = "Next diagnostic" })
-      vim.keymap.set("n", "<C-LeftMouse>", function ()
+      vim.keymap.set("n", "<C-LeftMouse>", function()
         local mouse = vim.fn.getmousepos()
         if mouse.winid ~= 0 then
           vim.api.nvim_set_current_win(mouse.winid)
           vim.api.nvim_win_set_cursor(mouse.winid, { mouse.line, mouse.column - 1 })
           vim.lsp.buf.definition()
         end
-      end, { desc = "Go to definition (Ctrl+Click)"})
-
-      vim.keymap.set({ "n", "v" }, "<leader>cf", function()
-        vim.lsp.buf.format({ async = true })
-      end, { desc = "Format code (LSP)" })
+      end, { desc = "Go to definition (Ctrl+Click)" })
     end,
   },
 }

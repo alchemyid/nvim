@@ -10,6 +10,6 @@ return {
     require("mini.pairs").setup({}) -- autoclose brackets/quotes
     require("mini.comment").setup({}) -- gcc / gc to comment
     require("mini.surround").setup({}) -- sa/sd/sr to add/delete/replace surroundings
-    require("mini.indentscope").setup({}) -- animated indent scope guide
+    require("mini.bufremove").setup({}) -- tutup buffer tanpa menutup window
   end,
 }

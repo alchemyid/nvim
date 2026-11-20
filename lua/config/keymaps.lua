@@ -16,7 +16,7 @@ map("n", "<C-j>", "<C-w>j", { desc = "Go to lower window" })
 map("n", "<C-k>", "<C-w>k", { desc = "Go to upper window" })
 
 -- Toggle light/dark background style (dynamic theme switching)
-map("n", "<leader>ts", function()
+map("n", "<leader>tc", function()
   if vim.o.background == "dark" then
     vim.o.background = "light"
   else
@@ -31,3 +31,23 @@ map("v", "<S-Tab>", "<gv", { desc = "Outdent selected block" })
 map("v", ">", ">gv", { desc = "Indent selected block" })
 map("v", "<", "<gv", { desc = "Outdent selected block" })
 
+
+-- ── Gaya VSCode ────────────────────────────────────────────────────────────
+map({ "n", "i", "v" }, "<C-s>", "<cmd>w<CR><Esc>", { desc = "Save (Ctrl+S)" })
+map("n", "<A-j>", "<cmd>m .+1<CR>==", { desc = "Move line down" })
+map("n", "<A-k>", "<cmd>m .-2<CR>==", { desc = "Move line up" })
+map("v", "<A-j>", ":m '>+1<CR>gv=gv", { desc = "Move selection down", silent = true })
+map("v", "<A-k>", ":m '<-2<CR>gv=gv", { desc = "Move selection up", silent = true })
+map("n", "<A-S-j>", "<cmd>t.<CR>", { desc = "Duplicate line down" })
+map("n", "<C-a>", "ggVG", { desc = "Select all" })
+map("v", "<C-c>", '"+y', { desc = "Copy to system clipboard" })
+map("n", "<leader>y", '"+y', { desc = "Yank to system clipboard" })
+map("n", "<leader>Y", '"+yy', { desc = "Yank line to system clipboard" })
+-- Ctrl+/ untuk comment (terminal mengirim <C-_>); memakai mini.comment
+map("n", "<C-_>", "gcc", { remap = true, desc = "Toggle comment" })
+map("v", "<C-_>", "gc", { remap = true, desc = "Toggle comment" })
+map("n", "<C-/>", "gcc", { remap = true, desc = "Toggle comment" })
+map("v", "<C-/>", "gc", { remap = true, desc = "Toggle comment" })
+-- Pecah/gabung window
+map("n", "<leader>\\", "<cmd>vsplit<CR>", { desc = "Split right" })
+map("n", "<leader>-", "<cmd>split<CR>", { desc = "Split below" })

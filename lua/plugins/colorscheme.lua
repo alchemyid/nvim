@@ -10,7 +10,7 @@ return {
       require("onedark").setup({
         -- Options: dark, darker, cool, deep, warm, warmer, light
         style = "darker",
-        toggle_style_key = "<leader>ts",
+        toggle_style_key = nil,
         toggle_style_list = { "dark", "darker", "cool", "deep", "warm", "warmer", "light" },
         transparent = false,
         term_colors = true,
